@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 # Usage: ./scripts/run_qx_banana.sh --livestream 2
+# Auto-discovers QX_and_picker.usd (arm + gripper + camera).
 # Override discovery with QX_ROBOT_USD=/path/to/robot.usd or QX_PYTHON=/path/to/python.
 
 set -euo pipefail
@@ -12,7 +13,7 @@ scene_usd="$repo_root/assets/scenes/banana_bowl.usda"
 
 if [[ -z "$robot_usd" ]]; then
     shopt -s nullglob
-    robot_candidates=(/srv/workspace/*/QX_robot/QX_robot/QX_USD/Picker_USD_foruse.usd)
+    robot_candidates=(/srv/workspace/*/QX_robot/QX_robot/QX_USD/QX_and_picker.usd)
     if (( ${#robot_candidates[@]} != 1 )); then
         printf 'Found %s QX robot USD candidates; set QX_ROBOT_USD to the correct file.\n' "${#robot_candidates[@]}" >&2
         exit 1
@@ -65,4 +66,5 @@ if [[ -z "${DISPLAY:-}" && -z "${WAYLAND_DISPLAY:-}" ]]; then
 fi
 
 cd "$repo_root"
+printf 'Loading QX robot USD: %s\n' "$robot_usd"
 exec "$python_bin" scripts/preview_qx_banana.py --robot-usd "$robot_usd" "$@"
