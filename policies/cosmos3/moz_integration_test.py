@@ -32,7 +32,7 @@ from policies.cosmos3.client_moz import (
     Cosmos3MozClient,
     validate_metadata,
 )
-from policies.cosmos3.run_moz import probe
+from policies.cosmos3.run_moz import load_probe_sample, probe
 
 
 def metadata():
@@ -149,12 +149,16 @@ def test_droid_observation_rejected_and_stats_hash_checked(tmp_path):
         validate_metadata(metadata(), stats_path=stats)
 
 
-def test_real_websocket_probe_without_isaac(tmp_path):
+@pytest.mark.parametrize("remote,absolute", [(False, False), (False, True), (True, False), (True, True)])
+def test_real_websocket_probe_without_isaac(tmp_path, monkeypatch, remote, absolute):
     from PIL import Image
     from websockets.sync.server import serve
 
     from robolab.eval.websocket_transport import MsgPackNumpy
 
+    # Spaces, quotes and shell metacharacters must survive SSH command quoting.
+    tmp_path = tmp_path / "sample ' $(must_not_run)"
+    tmp_path.mkdir()
     stats = tmp_path / "norm_stats.json"
     stats.write_text("{}")
     state = np.linspace(-1, 1, 20, dtype=np.float32)
@@ -173,7 +177,21 @@ def test_real_websocket_probe_without_isaac(tmp_path):
         "vision_path": "conditioning.png",
     }
     sample_path = tmp_path / "sample.json"
+    if absolute:
+        for key in ("state_path", "stats_path", "vision_path"):
+            sample[key] = str(tmp_path / sample[key])
     sample_path.write_text(json.dumps(sample))
+    ssh_calls = []
+    if remote:
+        run = subprocess.run
+
+        def fake_ssh(command, **kwargs):
+            assert command[:4] == ["ssh", "-T", "--", "test-user@cosmos"]
+            ssh_calls.append(command)
+            # Execute the exact remote reader using a local shell, without an SSH daemon.
+            return run(["/bin/sh", "-c", command[4]], **kwargs)
+
+        monkeypatch.setattr(subprocess, "run", fake_ssh)
     meta = metadata()
     meta["stats_sha256"] = hashlib.sha256(stats.read_bytes()).hexdigest()
     received = []
@@ -190,6 +208,7 @@ def test_real_websocket_probe_without_isaac(tmp_path):
         thread.start()
         args = SimpleNamespace(
             probe_sample=sample_path,
+            probe_ssh="test-user@cosmos" if remote else None,
             probe_output=tmp_path / "probe",
             remote_host="127.0.0.1",
             remote_port=server.socket.getsockname()[1],
@@ -206,7 +225,67 @@ def test_real_websocket_probe_without_isaac(tmp_path):
     np.testing.assert_array_equal(received[0]["observation/state"], state)
     actions = json.loads((args.probe_output / "action.json").read_text())
     assert np.asarray(actions).shape == (16, 20)
-    assert not json.loads((args.probe_output / "policy_metadata.json").read_text())["executed_in_simulation"]
+    saved = json.loads((args.probe_output / "policy_metadata.json").read_text())
+    assert not saved["executed_in_simulation"]
+    assert saved["sample_stats_sha256"] == meta["stats_sha256"]
+    assert saved["sample"] == (f"test-user@cosmos:{sample_path}" if remote else str(sample_path))
+    assert len(ssh_calls) == int(remote)
+
+
+def test_ssh_probe_local_stats_override_and_read_failure(tmp_path, monkeypatch):
+    from PIL import Image
+
+    stats = tmp_path / "local_stats.json"
+    stats.write_bytes(b'{"norm_stats": {}}\n')
+    (tmp_path / "state.json").write_text(json.dumps([0.0] * 20))
+    Image.fromarray(np.zeros((2, 2, 3), dtype=np.uint8)).save(tmp_path / "image.png")
+    sample = {"state_path": "state.json", "vision_path": "image.png", "stats_path": "missing_remote_stats.json"}
+    path = tmp_path / "sample.json"
+    path.write_text(json.dumps(sample))
+    run = subprocess.run
+
+    def fake_ssh(command, **kwargs):
+        return run(["/bin/sh", "-c", command[-1]], **kwargs)
+
+    monkeypatch.setattr(subprocess, "run", fake_ssh)
+    args = SimpleNamespace(probe_sample=path, probe_ssh="cosmos", stats_path=stats)
+    assert load_probe_sample(args)[-1] == hashlib.sha256(stats.read_bytes()).hexdigest()
+    args.stats_path = None
+    with pytest.raises(subprocess.CalledProcessError):
+        load_probe_sample(args)
+
+
+def test_probe_stats_mismatch_stops_before_inference(tmp_path, monkeypatch):
+    from policies.cosmos3 import run_moz
+
+    transport = FakeTransport()
+    client = Cosmos3MozClient(transport=transport)
+    monkeypatch.setattr(run_moz, "make_client", lambda args: client)
+    # Valid image and state but a different sample stats fingerprint.
+    import io
+
+    from PIL import Image
+
+    image = io.BytesIO()
+    Image.fromarray(np.zeros((2, 2, 3), dtype=np.uint8)).save(image, format="PNG")
+    sample = dict(
+        domain_name="moz1",
+        model_mode="policy",
+        fps=30,
+        action_chunk_size=16,
+        image_size=256,
+        view_point="concat_view",
+        prompt="pick banana",
+    )
+    monkeypatch.setattr(
+        run_moz,
+        "load_probe_sample",
+        lambda args: ("cosmos:sample.json", sample, [0.0] * 20, image.getvalue(), "b" * 64),
+    )
+    with pytest.raises(ValueError, match="hashes differ"):
+        probe(SimpleNamespace(probe_output=tmp_path / "probe"))
+    assert transport.requests == []
+    assert not (tmp_path / "probe").exists()
 
 
 @pytest.fixture
@@ -431,6 +510,15 @@ def test_missing_registration_fails_before_isaac_startup(monkeypatch):
     with pytest.raises(SystemExit) as exc:
         main(["--headless", "--livestream", "2"])
     assert exc.value.code == 2
+
+
+def test_ssh_without_sample_fails_before_isaac_startup(capsys):
+    from policies.cosmos3.run_moz import main
+
+    with pytest.raises(SystemExit) as exc:
+        main(["--probe-ssh", "user@cosmos"])
+    assert exc.value.code == 2
+    assert "--probe-ssh requires --probe-sample" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("decimation,seed,valid", [(4, 0, True), (8, 0, False), (4, 1, False)])

@@ -49,9 +49,23 @@ python -m cosmos_framework.scripts.action_policy_server_robolab_moz \
 
 ## 2. 先验证真实模型的输入输出
 
-不需要 Isaac Sim 或 QX 控制器，可以使用已有 MOZ1 开环评估产生的 `inputs/<sample>/sample.json`。该 JSON 引用的 `conditioning.png`、`state.json`、`norm_stats.json` 必须在客户端机器可读；复制时一起保留它们，修正 JSON 中仅在原服务器有效的绝对路径。相对路径按 JSON 所在目录解析。
+不需要 Isaac Sim 或 QX 控制器，可以使用已有 MOZ1 开环评估产生的 `inputs/<sample>/sample.json`。支持通过 SSH 读取服务器上的样本，也支持本地或共享文件系统路径；JSON 引用的图像、状态和 stats 必须在所选读取机器上可读。相对路径按 JSON 所在目录解析。
 
-在 RoboLab 仓库执行：
+样本保留在 Cosmos 服务器时，可以通过 SSH 直接读取，**无需复制样本目录到 RoboLab 机器**。在 RoboLab 仓库执行（`user` 替换为服务器 SSH 登录用户名，也可使用 `~/.ssh/config` 中的主机别名）：
+
+```bash
+bash scripts/run_cosmos3_moz.sh \
+  --remote-host 10.160.124.98 --remote-port 8000 \
+  --probe-ssh user@10.160.124.98 \
+  --probe-sample /srv/data2/c00932551/cosmos_outputs/test/moz1_open_loop_eval/iter_000010440_20261013_212322/inputs/moz1_val_00000409/sample.json \
+  --probe-output output/moz1_probe_10440_ssh_001
+```
+
+需要 RoboLab 机器有 `ssh` 命令、能够登录 Cosmos 服务器，远端有 `python3`（只用标准库）。SSH 使用已有密钥、交互密码或 SSH 配置；自定义端口/跳板机可在 SSH 配置别名中设置。SSH 文件读取与 WebSocket 推理是两个连接：`--probe-ssh` 指定文件所在机器，`--remote-host` 指定模型服务机器。
+
+客户端通过一次 SSH 调用在远端解析 JSON 的绝对/相对引用路径，将状态与图像传入本地内存，计算远端 stats 原始字节的 SHA-256 并与模型握手核对，随后通过 WebSocket 请求推理。不会在本地落盘 sample/image/state/stats，也不修改远端文件；只在本地保存推理结果和来源信息。可用 `--stats-path` 指定本地 stats 覆盖样本引用，此时校验本地文件的哈希。此功能仅用于 probe，不负责 QX 仿真控制。
+
+样本已在本地或共享文件系统时，在 RoboLab 仓库执行：
 
 ```bash
 MOZ1_REMOTE_HOST=<policy-server-ip> \
@@ -62,7 +76,7 @@ bash scripts/run_cosmos3_moz.sh \
 
 启动器使用 RoboLab `.venv`（其次 `.venv-51`），也可用 `QX_PYTHON=/path/to/python` 指定已有环境。probe 模式不导入或启动 Isaac Sim，只需要 NumPy、Pillow、websockets、msgpack。
 
-probe 核对服务器契约与本地 stats 的 SHA-256，返回有限的 `[16,20]` 动作后保存 `action.json` 和 `policy_metadata.json`，**不会执行机器人动作**。输出目录必须尚不存在。预测动作仍是数据集存储空间；不会自动变成米、弧度或关节角。probe 可验证在线模型链路，不能证明任务成功或控制正确。
+probe 核对服务器契约与样本 stats 的 SHA-256，返回有限的 `[16,20]` 动作后保存 `action.json` 和 `policy_metadata.json`，**不会执行机器人动作**。输出目录必须尚不存在。预测动作仍是数据集存储空间；不会自动变成米、弧度或关节角。probe 可验证在线模型链路，不能证明任务成功或控制正确。
 
 ## 3. QX 仿真与 WebRTC
 

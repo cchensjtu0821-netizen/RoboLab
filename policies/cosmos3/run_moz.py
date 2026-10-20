@@ -10,10 +10,15 @@ requires --registration module:function; see README_MOZ.md for its contract.
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import importlib
+import io
 import json
 import math
 import os
+import shlex
+import subprocess
 from pathlib import Path
 
 
@@ -50,6 +55,10 @@ def build_parser():
     parser.add_argument(
         "--probe-sample", type=Path, help="Existing MOZ1 open-loop sample.json; no Isaac Sim or robot is started."
     )
+    parser.add_argument(
+        "--probe-ssh",
+        help="Read the probe sample and referenced files over SSH from USER@HOST or an SSH config alias; no local copy.",
+    )
     parser.add_argument("--probe-output", type=Path, default=Path("output/cosmos3_moz_probe"))
     add_common_eval_args(parser)
     return parser
@@ -70,14 +79,69 @@ def make_client(args, *, stats_path=None):
     )
 
 
+# Uses only the remote Python standard library, independently of Cosmos/Isaac.
+# SSH receives one quoted command; file paths are data, never shell code.
+REMOTE_PROBE_READER = """
+import base64
+import hashlib
+import json
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1]).expanduser().resolve()
+sample = json.loads(path.read_text())
+def read(key):
+    target = Path(sample[key]).expanduser()
+    return (target if target.is_absolute() else path.parent / target).read_bytes()
+print(json.dumps({
+    "sample_path": str(path),
+    "sample": sample,
+    "state": json.loads(read("state_path")),
+    "vision_base64": base64.b64encode(read("vision_path")).decode("ascii"),
+    "stats_sha256": None if sys.argv[2] == "override" else hashlib.sha256(read("stats_path")).hexdigest(),
+}))
+"""
+
+
+def load_probe_sample(args):
+    """Read sample inputs into memory, resolving references on their source host."""
+    ssh_target = getattr(args, "probe_ssh", None)
+    if ssh_target:
+        command = shlex.join(
+            ["python3", "-c", REMOTE_PROBE_READER, str(args.probe_sample), "override" if args.stats_path else "sample"]
+        )
+        result = subprocess.run(["ssh", "-T", "--", ssh_target, command], stdout=subprocess.PIPE, check=True)
+        bundle = json.loads(result.stdout)
+        sample_path = bundle["sample_path"]
+        sample = bundle["sample"]
+        state = bundle["state"]
+        vision = base64.b64decode(bundle["vision_base64"], validate=True)
+        fingerprint = bundle["stats_sha256"]
+        source = f"{ssh_target}:{sample_path}"
+    else:
+        sample_path = args.probe_sample.expanduser().resolve()
+        sample = json.loads(sample_path.read_text())
+
+        def sample_file(key):
+            path = Path(sample[key]).expanduser()
+            return path if path.is_absolute() else sample_path.parent / path
+
+        state = json.loads(sample_file("state_path").read_text())
+        vision = sample_file("vision_path").read_bytes()
+        fingerprint = None if args.stats_path else hashlib.sha256(sample_file("stats_path").read_bytes()).hexdigest()
+        source = str(sample_path)
+    if args.stats_path:
+        fingerprint = hashlib.sha256(args.stats_path.expanduser().read_bytes()).hexdigest()
+    return source, sample, state, vision, fingerprint
+
+
 def probe(args):
     import numpy as np
     from PIL import Image
 
     from policies.cosmos3.client_moz import PROTOCOL, STORED_SPACE, validate_rgb, validate_state
 
-    sample_path = args.probe_sample.expanduser().resolve()
-    sample = json.loads(sample_path.read_text())
+    source, sample, state, vision, fingerprint = load_probe_sample(args)
     expected = {
         "domain_name": "moz1",
         "model_mode": "policy",
@@ -90,19 +154,16 @@ def probe(args):
         if sample.get(key) != value:
             raise ValueError(f"Probe sample {key}={sample.get(key)!r}, expected {value!r}")
 
-    def sample_file(key):
-        path = Path(sample[key]).expanduser()
-        return path if path.is_absolute() else sample_path.parent / path
-
-    state = validate_state(json.loads(sample_file("state_path").read_text()))
-    with Image.open(sample_file("vision_path")) as image:
+    state = validate_state(state)
+    with Image.open(io.BytesIO(vision)) as image:
         composite = validate_rgb(np.asarray(image.convert("RGB")), "MOZ1 composite")
     prompt = sample.get("prompt")
     if not isinstance(prompt, str) or not prompt.strip():
         raise ValueError("Probe sample prompt must be nonempty text")
-    stats = args.stats_path or sample_file("stats_path")
-    client = make_client(args, stats_path=stats)
+    client = make_client(args)
     try:
+        if client.metadata["stats_sha256"] != fingerprint:
+            raise ValueError("Probe sample and server norm_stats.json hashes differ")
         request = {
             "protocol": PROTOCOL,
             "state_space": STORED_SPACE,
@@ -119,7 +180,8 @@ def probe(args):
             json.dumps(
                 {
                     "server": client.metadata,
-                    "sample": str(sample_path),
+                    "sample": source,
+                    "sample_stats_sha256": fingerprint,
                     "action_shape": list(actions.shape),
                     "action_space": STORED_SPACE,
                     "generation_seed": response.get("seed"),
@@ -168,6 +230,8 @@ def register_robot(args):
 def main(argv=None):
     parser = build_parser()
     early, unknown = parser.parse_known_args(argv)
+    if early.probe_ssh and not early.probe_sample:
+        parser.error("--probe-ssh requires --probe-sample")
     if early.probe_sample:
         if unknown:
             parser.error(f"Unrecognized probe arguments: {' '.join(unknown)}")
