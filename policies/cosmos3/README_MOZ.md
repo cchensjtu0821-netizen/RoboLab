@@ -118,7 +118,38 @@ def register_envs(args):
 
 公共 helper 接收 `robot_cfg`、`actions_cfg`、`image_obs_cfg`、`proprio_obs_cfg`、`contact_gripper` 和可选 `scene_camera_cfg`。后三种 obs/action 参数是已实例化配置，robot_cfg 是配置类；机器人挂载的相机放到 robot_cfg，非挂载相机放到 scene_camera_cfg。机器人配置还需遵守 `docs/robots.md` 的接触体、夹具和 `ee_recorder_bodies` 要求。
 
-在 QX 控制注册可用前，仿真模式会明确报缺少 `--registration`；不会静默改用 DROID。当前缺少真实 USD 内容、关节/末端/驱动映射和数据生产端坐标系/单位/相对位姿定义，不能声称已完成 QX 闭环。
+在 QX 控制注册可用前，仿真模式会明确报缺少 `--registration`；不会静默改用 DROID。当前仍缺少实际 USD 与运行时 Articulation 的对应映射、驱动配置和数据生产端坐标系/单位/相对位姿定义，不能声称已完成 QX 闭环。
+
+### QX URDF 参考与实际 USD 核对
+
+2026-10-20 用户补充了 URDF 关节、连杆、限位和版本差异。完整数值保存在 [用户资料归档](../../logs/attachments/2026-10-20/qx_moz1_user_reference.txt)。这份资料由用户整理，Agent 尚未读取所列原始 URDF/USD 文件，也不能据它认定实际 USD 的 DOF 名称或顺序。
+
+候选映射已明确：左臂 `LeftArm-0..6` / `left07`、右臂 `RightArm-0..6` / `right07`、腰腿 `LegWaist-0..5` / `waist03`；flange 取决于版本，双 Picker 还有各自 narrow/wide/loop 关节。用户提供的整机关节顺序共 26 项（含轮子和头部，不含夹爪），不能直接当成模型的 20-D Cartesian 动作顺序。
+
+实际使用哪个模型版本必须核对资产；不能混合两版限位或只根据限位正负决定翻转关节。夹爪内部多个关节如何由一个开合量驱动，仍需确认主动/被动、耦合和数值标定。相机外壳或名为 D405 的 prim 不足以确认已经配置好策略可读取的相机传感器。
+
+已在原预览入口加入静态 USD 清单导出：
+
+```bash
+bash scripts/run_qx_banana.sh --headless --inspect-robot
+```
+
+沿用原来的 `QX_ROBOT_USD`、`QX_PYTHON` 和场景资源查找方式，默认写入 `output/qx_robot_inventory.json` 后退出。可通过 `--robot-report /path/to/report.json` 指定输出。该选项不下发控制命令，不进入策略评测。
+
+报告包含 `/World/robot` 下实际组合出的 articulation root、刚体、关节路径和类型、body0/body1 关系、原始 joint/drive 属性以及 Camera prim；同时记录源 USD 和组合 stage 的单位/朝上轴元数据。缺少元数据时保留 null，不猜测单位；非有限数值以 `nonfinite_float` 字段显式保存。报告不转换原始 USD 数值的单位。
+
+这只是 USD 静态结构检查，不能替代 PhysX 初始化后的 DOF 名称、顺序、固定连杆合并情况或控制验证。若出现多个 articulation root，须据实际模型决定本体与夹爪如何分别注册，不能假定整机只有一个 Articulation。
+
+若 RoboLab 代码与已安装环境位于两个 checkout，可显式复用原环境。例如从当前代码仓库执行：
+
+```bash
+export QX_PYTHON=/srv/workspace/c00932551/RoboLab/.venv/bin/python
+bash scripts/run_qx_banana.sh --headless --inspect-robot
+```
+
+该命令会启动 Isaac Sim、加载实际资产、写出报告后退出，不用连接 Cosmos 模型服务。机器人 USD 仍按原预览脚本自动查找，必要时设置实际 `QX_ROBOT_USD`。先核对报告中的 articulation roots、左右臂和躯干关节/末端路径、夹爪 drive/mimic 属性及 Camera prim；再核对实际运行时 DOF 和策略相机/控制器，不能仅凭静态报告直接下发模型动作。
+
+另一个独立待确认项是训练数据语义：用户资料第 7 节列出 base/world/末端/waist03 等常见选项，并未指定数据实际使用哪一种；URDF 的米/弧度也不能证明存储的动作已是物理单位。需检查 `leftarm_cmd_cart_pos`、`rightarm_cmd_cart_pos`、`torso_cmd_cart_pos`、夹爪命令及对应状态的生产代码，落实绝对/增量、参考系、旋转定义、TCP 偏移和生产端归一化，才能实现控制转换。
 
 ## 固定输入输出契约
 

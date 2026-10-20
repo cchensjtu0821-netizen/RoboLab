@@ -1,0 +1,34 @@
+来源：2026-10-20 用户对话反馈，不是 Agent 执行记录。
+用户原始说明：“下一步，我应该怎么办，并且cosmos3上面的server, 我还没有请求的时候，就已经出现”下列错误；询问“这类问题了，这个是又bug吗？还是出现什么问题了”。
+本条最开头即为截断 traceback；保留其原样，不补造缺失调用栈。
+
+    )
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 207, in handshake
+    raise self.protocol.handshake_exc
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 140, in accept
+    ) = self.process_request(request)
+        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 235, in process_request
+    raise InvalidUpgrade(
+        "Connection", ", ".join(connection) if connection else None
+    )
+websockets.exceptions.InvalidUpgrade: invalid Connection header: keep-alive
+INFO:websockets.server:connection rejected (426 Upgrade Required)
+ERROR:websockets.server:opening handshake failed
+Traceback (most recent call last):
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 356, in conn_handler
+    await connection.handshake(
+    ...<3 lines>...
+    )
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 207, in handshake
+    raise self.protocol.handshake_exc
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 140, in accept
+    ) = self.process_request(request)
+        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 235, in process_request
+    raise InvalidUpgrade(
+        "Connection", ", ".join(connection) if connection else None
+    )
+websockets.exceptions.InvalidUpgrade: invalid Connection header: keep-alive
+
+上下文：本条无异常发生时刻、请求源 IP、User-Agent、代理或健康检查配置。此前用户真实 probe 成功已另行归档；不能将本条异常自动归因于该 probe。

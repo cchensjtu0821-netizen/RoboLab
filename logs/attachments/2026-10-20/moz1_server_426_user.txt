@@ -1,0 +1,94 @@
+来源：用户于 2026-10-20 新粘贴的 Cosmos 服务器日志与问题“这个是为什么”。不是 Agent 执行记录。
+本条未提供启动命令、请求来源和 RoboLab 客户端输出。以下保留本条启动输出及四次重复异常。
+
+[10-20 19:51:46|job=|INFO|cosmos_framework/inference/common/init.py:127:_init_log_files] Console log saved to /tmp/cosmos3_action_server/moz1/console.log
+[10-20 19:51:46|job=|INFO|cosmos_framework/inference/common/init.py:128:_init_log_files] Debug log saved to /tmp/cosmos3_action_server/moz1/debug.log
+[10-20 19:51:49|job=|INFO|cosmos_framework/utils/misc.py:138:set_random_seed] Using random seed 0.
+[10-20 19:51:49|job=|INFO|cosmos_framework/model/generator/omni_mot_model.py:98:__init__] OmniMoTModel: config {'tokenizer': {'bucket_name': '', 'object_store_credential_path_pretrained': '', 'vae_path': 'pretrained/tokenizers/video/wan2pt2/Wan2.2_VAE.pth', 'chunk_duration': 93, 'keep_decoder_cache': False, 'use_streaming_encode': False, 'encode_chunk_frames': {'256': 68, '480': 24, '720': 8, '768': 8}, 'encode_exact_durations': [17], 'spatial_compression_factor': 16, 'temporal_compression_factor': 4, 'temporal_window': None, 'encode_bucket_multiple': None, 'causal': True, '_target_': <class 'cosmos_framework.model.generator.tokenizers.wan2pt2_vae_4x16x16.Wan2pt2VAEInterface'>}, 'net': None, 'ema': {'enabled': False, 'rate': 0.1, 'iteration_shift': 0}, 'parallelism': {'data_parallel_shard_degree': 1, 'data_parallel_replicate_degree': 1, 'context_parallel_shard_degree': 1, 'attention_io_layout': 'sequence_sharded', 'cfg_parallel_shard_degree': 1, 'enable_inference_mode': True, 'fsdp_master_dtype': 'float32'}, 'compile': {'enabled': False, 'compiled_region': 'all', 'compile_dynamic': True, 'use_cuda_graphs': False, 'ar_post_saturation_mode': 'default', 'max_autotune_pointwise': False, 'coordinate_descent_tuning': False}, 'activation_checkpointing': {'mode': 'none', 'save_ops_regex': ['fmha'], 'preserve_rng_state': True, 'determinism_check': 'default'}, 'precision': 'bfloat16', 'lora_enabled': False, 'lora_rank': 16, 'lora_alpha': 32, 'lora_target_modules': 'q_proj_moe_gen,k_proj_moe_gen,v_proj_moe_gen,o_proj_moe_gen', 'rectified_flow_training_config': {'shift': {'256': 3, '480': 5, '720': 10}, 'use_dynamic_shift': False, 'train_time_image_distribution': 'logitnormal', 'train_time_video_distribution': 'waver', 'train_time_action_distribution': 'logitnormal', 'train_time_sound_distribution': 'logitnormal', 'train_time_weight': 'uniform', 'loss_scale': 10.0, 'image_loss_scale': None, 'sound_loss_scale': 2.0, 'use_discrete_rf': False, 'action_loss_weight': 10.0, 'independent_action_schedule': False, 'shift_action': None, 'independent_sound_schedule': False, 'shift_sound': None, 'normalize_loss_by_active': False}, 'rectified_flow_inference_config': {'scheduler_type': 'unipc', 'num_train_timesteps': 1000, 'shift': 1, 'use_dynamic_shifting': False}, 'fixed_step_sampler_config': None, 'vlm_config': {'model_name': 'nvidia/Cosmos3-Edge-Reasoner', 'safetensors_path': '', 'pretrained_weights': {'enabled': False, 'backbone_path': 's3://bucket/cosmos3/pretrained/huggingface/nvidia/Cosmos3-Edge-Reasoner-590c1c0/', 'credentials_path': '', 'enable_gcs_patch_in_boto3': True, 'checkpoint_format': None}, 'model_instance': {'config': {'base_config': {'json_file': 'cosmos_framework/model/generator/reasoner/nemotron_3_dense_vl/configs/Nemotron-2B-Dense-VL.json', '_target_': <bound method _MoTConfigBase.from_json_file of <class 'cosmos_framework.model.generator.mot.unified_mot.Nemotron3DenseVLMoTConfig'>>}, 'freeze_und': False, 'layer_module': 'MoTDecoderLayer', 'qk_norm_for_text': False, 'use_und_k_norm_for_gen': True, 'include_visual': None, 'tie_word_embeddings': True, '_target_': <function create_vlm_config at 0x7f5f7fa91f80>}, '_target_': <class 'cosmos_framework.model.generator.mot.unified_mot.Nemotron3DenseVLTextForCausalLM'>}, 'tokenizer': {'_target_': <function build_processor_lazy at 0x7f5f2766de40>, 'tokenizer_type': '/srv/data2/c00932551/Nvidia_models/Cosmos3-Edge-Policy-DROID'}, 'layer_module': None, 'qk_norm': False, 'tie_word_embeddings': False, 'use_system_prompt': False}, 'diffusion_expert_config': {'timestep_range': 1.0, 'load_weights_from_pretrained': False, 'patch_spatial': 2, 'max_vae_latent_side_after_patchify': 20, 'enable_fps_modulation': True, 'base_fps': 24, 'sound_base_temporal_compression_factor': None, 'vision_temporal_position_mode': 'latent_index', 'unified_3d_mrope_reset_spatial_ids': True, 'unified_3d_mrope_temporal_modality_margin': 15000}, 'input_video_key': 'video', 'input_image_key': 'images', 'input_caption_key': 'ai_caption', 'state_ch': 48, 'state_t': 300, 'latent_downsample_factor': 16, 'resolution': '480', 'max_num_tokens_after_packing': -1, 'joint_attn_implementation': 'two_way', 'natten_parameter_list': None, 'video_temporal_causal': False, 'causal_training_strategy': 'none', 'lbl': {'method': 'local', 'coeff_und': None, 'coeff_gen': None}, 'vision_gen': True, 'action_gen': True, 'max_action_dim': 64, 'num_embodiment_domains': 32, 'sound_gen': False, 'sound_tokenizer': None, 'sound_dim': None, 'sound_latent_fps': 25, 'enable_input_bias': True, 'log_enc_time_every_n': 100, 'exclude_reasoner_weights_from_checkpoint': False}
+[10-20 19:51:49|job=|WARNING|cosmos_framework/model/generator/omni_mot_model.py:124:set_precision] OmniMoTModel: precision torch.bfloat16
+This processor does not use the `size` parameter. It will be ignored.
+[10-20 19:51:50|job=|INFO|cosmos_framework/data/generator/processors/base.py:131:__init__] Successfully loaded processor from local cache
+[10-20 19:51:57|job=|INFO|cosmos_framework/model/generator/tokenizers/wan2pt2_vae_4x16x16.py:1032:_video_vae] loading pretrained/tokenizers/video/wan2pt2/Wan2.2_VAE.pth
+[10-20 19:51:57|job=|INFO|cosmos_framework/utils/distributed.py:407:sync_model_states] Synchronizing model states from rank 0 to all ranks in process group [0].
+[10-20 19:51:59|job=|INFO|cosmos_framework/utils/timer.py:138:_log] Time spent on OmniMoTModel: set_up_tokenizers: 9.75 s
+[10-20 19:51:59|job=|INFO|cosmos_framework/utils/generator/parallelism.py:117:_validate] dp_replicate is set to -1, will be automatically determined based on world_size 1 // dp_shard 1.
+[10-20 19:51:59|job=|INFO|cosmos_framework/utils/generator/parallelism.py:122:_validate] dp_replicate is set to 1.
+`torch_dtype` is deprecated! Use `dtype` instead!
+[10-20 19:52:00|job=|INFO|cosmos_framework/utils/timer.py:138:_log] Time spent on meta to cuda and broadcast model states: 0.52 s
+[10-20 19:52:00|job=|INFO|cosmos_framework/utils/timer.py:138:_log] Time spent on Creating PyTorch model and ema if enabled: 0.93 s
+[10-20 19:52:00|job=|INFO|cosmos_framework/utils/timer.py:138:_log] Time spent on OmniMoTModel: set_up_model: 0.93 s
+[10-20 19:52:00|job=|INFO|cosmos_framework/utils/timer.py:138:_log] Time spent on instantiate model: 10.73 s
+[10-20 19:52:00|job=|INFO|cosmos_framework/utils/generator/model_loader.py:235:_load_model] Loading model from /srv/data2/c00932551/cosmos_outputs/test/cosmos3_action/action_sft/action_policy_moz1_edge_gpu7_train/checkpoints/iter_000010440/model
+[10-20 19:52:08|job=|INFO|cosmos_framework/utils/generator/model_loader.py:263:_load_model] Successfully loaded model from /srv/data2/c00932551/cosmos_outputs/test/cosmos3_action/action_sft/action_policy_moz1_edge_gpu7_train/checkpoints/iter_000010440/model
+[10-20 19:52:08|job=|INFO|cosmos_framework/utils/generator/model_loader.py:264:_load_model] Time taken to load model: 8.55 seconds
+[10-20 19:52:08|job=|INFO|cosmos_framework/inference/common/config.py:59:save_config] Saved config to /tmp/cosmos3_action_server/moz1/config.yaml
+MOZ1 ready: ws://0.0.0.0:8000 (20-D, 16 steps, 30 FPS)
+INFO:websockets.server:server listening on 0.0.0.0:8000
+INFO:websockets.server:connection rejected (426 Upgrade Required)
+ERROR:websockets.server:opening handshake failed
+Traceback (most recent call last):
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 356, in conn_handler
+    await connection.handshake(
+    ...<3 lines>...
+    )
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 207, in handshake
+    raise self.protocol.handshake_exc
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 140, in accept
+    ) = self.process_request(request)
+        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 235, in process_request
+    raise InvalidUpgrade(
+        "Connection", ", ".join(connection) if connection else None
+    )
+websockets.exceptions.InvalidUpgrade: invalid Connection header: keep-alive
+INFO:websockets.server:connection rejected (426 Upgrade Required)
+ERROR:websockets.server:opening handshake failed
+Traceback (most recent call last):
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 356, in conn_handler
+    await connection.handshake(
+    ...<3 lines>...
+    )
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 207, in handshake
+    raise self.protocol.handshake_exc
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 140, in accept
+    ) = self.process_request(request)
+        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 235, in process_request
+    raise InvalidUpgrade(
+        "Connection", ", ".join(connection) if connection else None
+    )
+websockets.exceptions.InvalidUpgrade: invalid Connection header: keep-alive
+INFO:websockets.server:connection rejected (426 Upgrade Required)
+ERROR:websockets.server:opening handshake failed
+Traceback (most recent call last):
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 356, in conn_handler
+    await connection.handshake(
+    ...<3 lines>...
+    )
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 207, in handshake
+    raise self.protocol.handshake_exc
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 140, in accept
+    ) = self.process_request(request)
+        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 235, in process_request
+    raise InvalidUpgrade(
+        "Connection", ", ".join(connection) if connection else None
+    )
+websockets.exceptions.InvalidUpgrade: invalid Connection header: keep-alive
+INFO:websockets.server:connection rejected (426 Upgrade Required)
+ERROR:websockets.server:opening handshake failed
+Traceback (most recent call last):
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 356, in conn_handler
+    await connection.handshake(
+    ...<3 lines>...
+    )
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/asyncio/server.py", line 207, in handshake
+    raise self.protocol.handshake_exc
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 140, in accept
+    ) = self.process_request(request)
+        ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "/srv/data2/c00932551/Nvidia_models/cosmos-framework/.venv/lib/python3.13/site-packages/websockets/server.py", line 235, in process_request
+    raise InvalidUpgrade(
+        "Connection", ", ".join(connection) if connection else None
+    )
+websockets.exceptions.InvalidUpgrade: invalid Connection header: keep-alive

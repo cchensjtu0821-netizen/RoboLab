@@ -1,0 +1,11 @@
+来源：用户在 2026-10-20 对话粘贴的 RoboLab 客户端命令与输出，未由 Agent 执行。
+
+(base) robot@robot-pc:/srv/workspace/c00932551/Robot_fork/RoboLab$ bash scripts/run_cosmos3_moz.sh \
+    --remote-host 10.160.124.98 \
+    --remote-port 8000 \
+    --probe-ssh user@10.160.124.98 \
+    --probe-sample /srv/data2/c00932551/cosmos_outputs/test/moz1_open_loop_eval/iter_000010440_20261013_212322/inputs/moz1_val_00000409/sample.json \
+    --probe-output output/moz1_probe_10440_ssh_001
+Set QX_PYTHON to the existing Isaac Lab Python, or use this checkout's .venv.
+
+用户未提供本机 Python 版本/可执行文件路径、uv 是否可用、包安装状态或有效 QX_PYTHON 值；均为未知。提示符显示 conda base，但不能据此判断其 Python 版本和依赖是否适合。该错误发生在 shell 启动器选择 Python 阶段，未启动 Python、SSH 读取或 WebSocket 模型请求。

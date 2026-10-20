@@ -1,0 +1,43 @@
+{
+  "server": {
+    "protocol": "moz1_policy_v1",
+    "domain_name": "moz1",
+    "action_dim": 20,
+    "action_chunk_size": 16,
+    "conditioning_fps": 30,
+    "resolution": "256",
+    "state_space": "dataset_stored_20d",
+    "action_space": "dataset_stored_20d",
+    "field_order": [
+      "left_pose_6",
+      "left_gripper_1",
+      "right_pose_6",
+      "right_gripper_1",
+      "torso_pose_6"
+    ],
+    "cameras": [
+      "cam_high",
+      "cam_left_wrist",
+      "cam_right_wrist"
+    ],
+    "stats_sha256": "417debf99f7be79b6fd6e31e63bb6c5e0011f1aa6c8ac117be4c7f27fc206263",
+    "checkpoint": "/srv/data2/c00932551/cosmos_outputs/test/cosmos3_action/action_sft/action_policy_moz1_edge_gpu7_train/checkpoints/iter_000010440",
+    "use_ema_weights": false,
+    "generation": {
+      "seed": 0,
+      "deterministic_seed": false,
+      "num_steps": 30,
+      "guidance": 1.0,
+      "shift": 3.0
+    }
+  },
+  "sample": "user@10.160.124.98:/srv/data2/c00932551/cosmos_outputs/test/moz1_open_loop_eval/iter_000010440_20261013_212322/inputs/moz1_val_00000409/sample.json",
+  "sample_stats_sha256": "417debf99f7be79b6fd6e31e63bb6c5e0011f1aa6c8ac117be4c7f27fc206263",
+  "action_shape": [
+    16,
+    20
+  ],
+  "action_space": "dataset_stored_20d",
+  "generation_seed": 1826701615,
+  "executed_in_simulation": false
+}

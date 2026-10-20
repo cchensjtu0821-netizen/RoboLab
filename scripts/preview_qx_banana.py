@@ -12,7 +12,6 @@ from pathlib import Path
 
 from isaaclab.app import AppLauncher
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SCENE = REPO_ROOT / "assets/scenes/banana_bowl.usda"
 
@@ -31,6 +30,14 @@ parser.add_argument(
 parser.add_argument(
     "--keep-franka-fixture", action="store_true",
     help="Keep the old Franka pedestal in the task scene.",
+)
+parser.add_argument(
+    "--inspect-robot", action="store_true",
+    help="Export static USD joint/body/articulation/camera inventory and exit; do not drive the robot.",
+)
+parser.add_argument(
+    "--robot-report", type=Path, default=REPO_ROOT / "output/qx_robot_inventory.json",
+    help="Inventory JSON written by --inspect-robot.",
 )
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
@@ -81,6 +88,15 @@ def main():
 
     robot = add_reference(stage, "/World/robot", args.robot_usd.resolve())
     UsdGeom.XformCommonAPI(robot).SetTranslate(Gf.Vec3d(*args.robot_pos))
+
+    if args.inspect_robot:
+        from qx_usd_inventory import write_inventory
+
+        report = write_inventory(stage, args.robot_report, robot_usd=args.robot_usd.resolve())
+        print(f"Static QX USD inventory: {args.robot_report.resolve()}", flush=True)
+        print(f"Counts: {report['counts']}", flush=True)
+        print("This is USD topology, not initialized Isaac Lab dof_names or validated control mapping.", flush=True)
+        return
 
     dome = UsdLux.DomeLight.Define(stage, "/World/PreviewLight")
     dome.CreateIntensityAttr(500.0)

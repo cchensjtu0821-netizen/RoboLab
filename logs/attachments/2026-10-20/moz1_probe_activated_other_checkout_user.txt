@@ -1,0 +1,8 @@
+来源：用户 2026-10-20 对话粘贴的命令、输出及反馈；不是 Agent 执行结果。
+
+(base) robot@robot-pc:/srv/workspace/c00932551/Robot_fork/RoboLab$ source /srv/workspace/c00932551/RoboLab/.venv/bin/activate
+(RoboLab) (base) robot@robot-pc:/srv/workspace/c00932551/Robot_fork/RoboLab$ bash scripts/run_cosmos3_moz.sh     --remote-host 10.160.124.98     --remote-port 8000     --probe-ssh user@10.160.124.98     --probe-sample /srv/data2/c00932551/cosmos_outputs/test/moz1_open_loop_eval/iter_000010440_20261013_212322/inputs/moz1_val_00000409/sample.json     --probe-output output/moz1_probe_10440_ssh_001
+Set QX_PYTHON to the existing Isaac Lab Python, or use this checkout's .venv.
+用户反馈：我激活环境了。
+
+已知：激活脚本位于另一个 checkout 的 .venv；用户运行代码的路径含 Robot_fork。Python 版本、具体已安装包、有效 QX_PYTHON、SSH 与模型请求结果本条未提供。仅凭提示符不能验证包或仿真依赖可用。

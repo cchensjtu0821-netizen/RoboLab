@@ -1,0 +1,153 @@
+归档来源：2026-10-20 用户在当前对话中提供的 QX / MOZ1 机器人参考资料。
+状态：以下为用户提供的资料，Agent 尚未访问或解析所列 URDF/USD/Xacro 原始文件。
+字段、顺序、原始数值/精度和版本说明按用户消息保留；排版整理为纯文本表格。
+用户询问：这份资料是否满足此前缺失的 QX 控制配置需求，RoboLab 是否还需修改。
+
+QX / MOZ1 机器人 Isaac Lab 配置参考
+来源：本目录下 URDF 模型文件（spirit01_model_0604/urdf/moz1.urdf、urdf_pkg-v2.0.0/src/spirit01_model/urdf/moz1_v1.urdf、moz1_v2.urdf）与夹爪模型（omnipicker/robot_description/urdf/*）。
+场景单位：URDF 默认 米 (m) / 弧度 (rad)。
+
+1. 模型文件清单
+文件 | 内容
+spirit01_model_0604/urdf/moz1.urdf | MOZ1 整机（底盘+腰腿+双臂+头+相机），无夹爪
+urdf_pkg-v2.0.0/.../moz1_v1.urdf / moz1_v2.urdf | 带 flange 的版本（含 TorsoFlange/LeftFlange/RightFlange 固定关节）
+omnipicker/robot_description/urdf/robot.urdf | 夹爪（Picker，narrow/wide 两组手指 + loop）
+omnipicker/robot_description/urdf/robot_isaac.urdf | 同夹爪，Isaac 用
+QX_USD/QX_and_picker.usd | Isaac Sim/USD 组合模型（QX 臂 + Picker + D405）
+
+2. 运动学树（坐标系层级，按用户提供的概览保留）
+base_link                       ← 基座/底盘系（树根）
+├── wheel01..04                 （Base-0..3，continuous）
+├── lidar_link                  （Lidar-0，fixed）
+├── leg01 → leg02 → leg03       （LegWaist-0..2，腰腿）
+├── waist01 → waist02 → waist03 （LegWaist-3..5，躯干）
+├── left01..left07              （LeftArm-0..6，左臂，末端=left07）
+├── right01..right07            （RightArm-0..6，右臂，末端=right07）
+└── head21 → head22 → head23 → camera0_link（Head-0..1 可动，Head-2/Camera-0 fixed）
+v1/v2 额外：torso_flange（TorsoFlange-0，fixed）、left_flange（LeftFlange-0，fixed）、right_flange（RightFlange-0，fixed）。
+
+夹爪挂载后（夹爪 base_link ← 臂的 flange）：
+left07/right07 (flange)
+  └── 夹爪 base_link
+      ├── hand_narrow1_Link → 2 → 3 → 4   （hand_narrow1..4_joint）
+      ├── hand_narrow_loop_Link            （hand_narrow_loop_joint）
+      ├── hand_wide1_Link  → 2 → 3 → 4    （hand_wide1..4_joint）
+      └── hand_wide_loop_Link              （hand_wide_loop_joint）
+
+3. 关节名称与限位（spirit01_model_0604/moz1.urdf，主版本）
+3.1 底盘（continuous，无固定限位）
+关节名 | 类型 | 父→子
+Base-0 | continuous | base_link → wheel01
+Base-1 | continuous | base_link → wheel02
+Base-2 | continuous | base_link → wheel03
+Base-3 | continuous | base_link → wheel04
+
+3.2 腰腿/躯干（revolute）
+关节名 | 连杆 | 限位 (rad) | 限位 (°)
+LegWaist-0 | leg01 | [-0.5236, 0.5236] | [-30, 30]
+LegWaist-1 | leg02 | [-1.5708, 1.5708] | [-90, 90]
+LegWaist-2 | leg03 | [-2.5307, 0.0175] | [-145, 1]
+LegWaist-3 | waist01 | [-0.1745, 1.3963] | [-10, 80]
+LegWaist-4 | waist02 | [-0.5236, 0.5236] | [-30, 30]
+LegWaist-5 | waist03 | [-3.1416, 3.1416] | [-180, 180]
+
+3.3 左臂（revolute）
+关节名 | 连杆 | 限位 (rad) | 限位 (°)
+LeftArm-0 | left01 | [-3.1416, 2.0944] | [-180, 120]
+LeftArm-1 | left02 | [-2.9671, 0.1571] | [-170, 9]
+LeftArm-2 | left03 | [-3.0543, 3.0543] | [-175, 175]
+LeftArm-3 | left04 | [-2.2515, 0.1745] | [-129, 10]
+LeftArm-4 | left05 | [-3.0543, 3.0543] | [-175, 175]
+LeftArm-5 | left06 | [-1.6581, 1.6581] | [-95, 95]
+LeftArm-6 | left07 | [-1.5708, 1.5708] | [-90, 90]
+
+3.4 右臂（revolute）
+关节名 | 连杆 | 限位 (rad) | 限位 (°)
+RightArm-0 | right01 | [-2.0944, 3.1416] | [-120, 180]
+RightArm-1 | right02 | [-2.9671, 0.1571] | [-170, 9]
+RightArm-2 | right03 | [-3.0543, 3.0543] | [-175, 175]
+RightArm-3 | right04 | [-0.1745, 2.2515] | [-10, 129]
+RightArm-4 | right05 | [-3.0543, 3.0543] | [-175, 175]
+RightArm-5 | right06 | [-1.6581, 1.6581] | [-95, 95]
+RightArm-6 | right07 | [-1.5708, 1.5708] | [-90, 90]
+
+3.5 头部 / 相机
+关节名 | 连杆 | 限位 (rad) | 限位 (°)
+Head-0 | head21 | [-1.5708, 1.5708] | [-90, 90]
+Head-1 | head22 | [-1.5708, 1.5708] | [-90, 90]
+Head-2 | head23 | fixed | -
+Camera-0 | camera0_link | fixed | -
+Lidar-0 | lidar_link | fixed | -
+
+4. 版本差异（重要）
+moz1_v1.urdf / moz1_v2.urdf 与主版本 moz1.urdf 在以下关节的限位符号/范围不同：
+关节 | moz1.urdf (°) | v1/v2 (°)
+LegWaist-2 | [-145, 1] | [-1, 145]（符号相反）
+LeftArm-0 | [-180, 120] | [-120, 180]（左右互换）
+RightArm-0 | [-120, 180] | [-180, 120]（左右互换）
+LeftArm-3 | [-129, 10] | 相同（数值微差）
+RightArm-3 | [-10, 129] | 相同（数值微差）
+Head-0 | [-90, 90] | [-180, 180]
+Head-1 | [-90, 90] | [0, 60]
+新增 | - | TorsoFlange-0 / LeftFlange-0 / RightFlange-0（fixed）
+使用前请确认哪套限位对应实际机器人；左右臂 Joint0 限位在两版中互换了。
+
+5. 夹爪（Picker）关节
+关节名 | 类型 | 父→子 | 备注
+hand_narrow1_joint | revolute | 夹爪base_link → hand_narrow1_Link | 手指1
+hand_narrow2_joint | revolute | hand_narrow1_Link → hand_narrow2_Link |
+hand_narrow3_joint | revolute | hand_narrow2_Link → hand_narrow3_Link |
+hand_narrow4_joint | fixed | hand_narrow3_Link → hand_narrow4_Link |
+hand_narrow_loop_joint | revolute | 夹爪base_link → hand_narrow_loop_Link | 连杆
+hand_wide1_joint | revolute | 夹爪base_link → hand_wide1_Link | 宽指1
+hand_wide2_joint | revolute | hand_wide1_Link → hand_wide2_Link |
+hand_wide3_joint | revolute | hand_wide2_Link → hand_wide3_Link |
+hand_wide4_joint | fixed | hand_wide3_Link → hand_wide4_Link |
+hand_wide_loop_joint | revolute | 夹爪base_link → hand_wide_loop_Link | 连杆
+手指关节在 robot_urdf.xacro 中限位为 [-3.14, 3.14] rad（robot_isaac.urdf 未写限位，视为自由）。
+夹爪挂载方向（robot_isaac.urdf）：hand_narrow1_joint 等相对夹爪 base_link 的 rpy = (-2.9951, -1.5708, -0.15964)。
+
+6. 末端执行器 / 关键 body 名（对应 Isaac Lab prim/link）
+用途 | 左臂 | 右臂
+臂末端 link | left07 | right07
+flange（v1/v2） | left_flange | right_flange
+夹爪 base_link（挂载点） | hand_narrow1_Link 系列父 base_link | 同左（各自一套）
+USD 组合模型（QX_and_picker.usd）中的典型 prim 名（来自 stage）：
+整机：/World/robot/QX_USD/...、/World/robot/Picker_USD_left/...、/World/robot/Picker_USD_right/...
+躯干：waist03、head23_main、MOZ1（URDF 名）
+相机：camera0_link（URDF）/ D405（USD，左右各一）
+
+7. 动作坐标系（控制层概念，非模型固有）
+URDF 只提供坐标系（frame），「动作相对谁表达」由控制/策略层定义。常见选择：
+坐标系 | 含义 | 典型用途
+base_link 系 | 相对底盘/基座 | delta EE pose in base frame（最常用）
+world 系 | 场景世界原点 | 绝对目标位姿
+末端/夹爪系 | 相对当前夹爪/末端 | 沿夹爪朝向增量（推、夹取）
+waist03 系 | 相对躯干 | 双臂/头部动作
+夹爪内部关节系 | 手指相对夹爪 base_link / 父关节 | 夹爪开合
+单位约定：平移=米（m），旋转/关节角=弧度（rad）。
+相对/绝对：
+delta（增量）= 相对当前状态
+absolute（绝对）= 相对目标系的目标值
+示例：openpi transforms.py 中有 RepackAbsoluteToDeltaActionSpace / RepackDeltaToAbsoluteActionSpace，用 mask 指定哪些维度做增量。
+
+8. Isaac Lab 配置映射建议
+# 关节顺序（DOF 顺序建议，与 USD articulation 一致后按此排列）
+# 底盘 Base-0..3 + 腰腿 LegWaist-0..5 + 左臂 LeftArm-0..6 + 右臂 RightArm-0..6
+# + 头 Head-0..1（+ 可选 夹爪 hand_narrow/wide 手指）
+joint_names = [
+    # wheels
+    "Base-0", "Base-1", "Base-2", "Base-3",
+    # torso / waist legs
+    "LegWaist-0", "LegWaist-1", "LegWaist-2",
+    "LegWaist-3", "LegWaist-4", "LegWaist-5",
+    # left arm
+    "LeftArm-0", "LeftArm-1", "LeftArm-2", "LeftArm-3",
+    "LeftArm-4", "LeftArm-5", "LeftArm-6",
+    # right arm
+    "RightArm-0", "RightArm-1", "RightArm-2", "RightArm-3",
+    "RightArm-4", "RightArm-5", "RightArm-6",
+    # head
+    "Head-0", "Head-1",
+]
+注意：USD 里的实际关节名可能与 URDF 不同（例如 USD 中为 MOZ1/... 结构），最终以 Isaac Sim 中 IsaacArticulation 注册后的 dof_names 为准。
