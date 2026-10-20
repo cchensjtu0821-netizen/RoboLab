@@ -58,3 +58,27 @@ def test_missing_robot_and_usd_value_serialization():
     assert json_value((1.0, 2.0)) == [1.0, 2.0]
     assert isinstance(json_value(object()), str)
     assert json_value(float("inf")) == {"nonfinite_float": "inf"}
+
+
+@pytest.mark.parametrize("targets", [[], ["/World/robot/Picker_USD_left/joints/hand_narrow1_joint"]])
+def test_mimic_reference_relationships_are_preserved_even_when_empty(targets):
+    root = prim("/World/robot")
+    relationship = "physxMimicJoint:rotX:referenceJoint"
+    bodies = {
+        "physics:body0": ["/World/robot/Picker_USD_left/hand_narrow1_Link"],
+        "physics:body1": ["/World/robot/Picker_USD_left/hand_narrow2_Link"],
+    }
+    mimic = prim(
+        "/World/robot/Picker_USD_left/joints/hand_narrow2_joint",
+        type_name="PhysicsRevoluteJoint",
+        schemas=["PhysxMimicJointAPI:rotX"],
+        attrs={"physics:axis": "Z", "physxMimicJoint:rotX:gearing": 0.009999999776482582},
+        rels={**bodies, relationship: targets},
+    )
+    stage = SimpleNamespace(
+        GetPrimAtPath=lambda path: root, Traverse=lambda: iter([root, mimic]), GetMetadata=lambda key: None
+    )
+    joint = collect_inventory(stage)["joints"][0]
+    assert joint["raw_usd_relationships"] == {**bodies, relationship: targets}
+    assert joint["body_relationships"] == bodies
+    assert joint["raw_usd_attributes"]["physxMimicJoint:rotX:gearing"] == 0.009999999776482582

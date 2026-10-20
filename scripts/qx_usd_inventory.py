@@ -68,6 +68,9 @@ def collect_inventory(stage, root_path="/World/robot"):
             report["rigid_bodies"].append({"path": path, "name": prim.GetName()})
         type_name = prim.GetTypeName()
         if "Joint" in type_name:
+            relationships = {
+                rel.GetName(): [str(target) for target in rel.GetTargets()] for rel in prim.GetRelationships()
+            }
             report["joints"].append(
                 {
                     "path": path,
@@ -75,10 +78,14 @@ def collect_inventory(stage, root_path="/World/robot"):
                     "type": type_name,
                     "applied_schemas": schemas,
                     "body_relationships": {
-                        rel.GetName(): [str(target) for target in rel.GetTargets()]
-                        for rel in prim.GetRelationships()
-                        if rel.GetName() in ("physics:body0", "physics:body1")
+                        name: targets
+                        for name, targets in relationships.items()
+                        if name in ("physics:body0", "physics:body1")
                     },
+                    # Mimic referenceJoint is a relationship, not an attribute.
+                    # Retain empty targets too; absence in an older report does
+                    # not prove that the original USD has a broken reference.
+                    "raw_usd_relationships": relationships,
                     "raw_usd_attributes": prim_attributes(
                         prim, ("physics:", "drive:", "physxJoint:", "physxMimicJoint:")
                     ),

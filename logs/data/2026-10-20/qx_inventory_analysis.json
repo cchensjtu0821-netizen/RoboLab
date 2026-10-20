@@ -1,0 +1,42 @@
+{
+  "source": "logs/attachments/2026-10-20/qx_robot_inventory_user.json",
+  "source_kind": "user_supplied_static_usd_inventory",
+  "agent_loaded_usd": false,
+  "agent_ran_physics": false,
+  "joint_types": {
+    "PhysicsRevoluteJoint": 42,
+    "PhysicsFixedJoint": 3
+  },
+  "joints_with_drive_schema": 28,
+  "joints_with_mimic_schema": 14,
+  "reachable_bodies_from_authored_root": 46,
+  "duplicate_body_names": {
+    "base_link": 3,
+    "hand_narrow1_Link": 2,
+    "hand_narrow2_Link": 2,
+    "hand_narrow3_Link": 2,
+    "hand_narrow_loop_Link": 2,
+    "hand_wide1_Link": 2,
+    "hand_wide2_Link": 2,
+    "hand_narrow3_Link_01": 2,
+    "hand_narrow_loop_Link_01": 2
+  },
+  "duplicate_joint_names": {
+    "hand_narrow1_joint": 2,
+    "hand_narrow2_joint": 2,
+    "hand_narrow3_joint": 2,
+    "hand_narrow_loop_joint": 2,
+    "hand_wide1_joint": 2,
+    "hand_wide2_joint": 2,
+    "hand_wide3_joint": 2,
+    "hand_wide_loop_joint": 2,
+    "AssemblerFixedJoint": 2
+  },
+  "robot_subtree_camera_paths": [
+    "/World/robot/Picker_USD_left/base_link/D405_left/camera_link/waist_camera",
+    "/World/robot/Picker_USD_right/base_link/D405_right/camera_link/waist_camera"
+  ],
+  "mimic_reference_relationships_available_in_source_report": false,
+  "runtime_dof_count": null,
+  "note": "Derived from static supplied paths/schemas, not PhysX DOF or independent actuator counts."
+}

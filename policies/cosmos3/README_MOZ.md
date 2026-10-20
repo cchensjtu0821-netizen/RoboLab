@@ -136,7 +136,7 @@ bash scripts/run_qx_banana.sh --headless --inspect-robot
 
 沿用原来的 `QX_ROBOT_USD`、`QX_PYTHON` 和场景资源查找方式，默认写入 `output/qx_robot_inventory.json` 后退出。可通过 `--robot-report /path/to/report.json` 指定输出。该选项不下发控制命令，不进入策略评测。
 
-报告包含 `/World/robot` 下实际组合出的 articulation root、刚体、关节路径和类型、body0/body1 关系、原始 joint/drive 属性以及 Camera prim；同时记录源 USD 和组合 stage 的单位/朝上轴元数据。缺少元数据时保留 null，不猜测单位；非有限数值以 `nonfinite_float` 字段显式保存。报告不转换原始 USD 数值的单位。
+报告包含 `/World/robot` 下实际组合出的 articulation root、刚体、关节路径和类型、body0/body1 关系、原始 joint/drive 属性以及 Camera prim；同时记录源 USD 和组合 stage 的单位/朝上轴元数据。新增 `joints[].raw_usd_relationships` 保存全部关节关系，包括 `physxMimicJoint:rotX:referenceJoint` 的目标和空目标列表。旧版报告仅有 body0/body1，不能据此认定原 USD 没有配置 mimic 引用。缺少元数据时保留 null，不猜测单位；非有限数值以 `nonfinite_float` 字段显式保存。报告不转换原始 USD 数值的单位。
 
 这只是 USD 静态结构检查，不能替代 PhysX 初始化后的 DOF 名称、顺序、固定连杆合并情况或控制验证。若出现多个 articulation root，须据实际模型决定本体与夹爪如何分别注册，不能假定整机只有一个 Articulation。
 
@@ -148,6 +148,32 @@ bash scripts/run_qx_banana.sh --headless --inspect-robot
 ```
 
 该命令会启动 Isaac Sim、加载实际资产、写出报告后退出，不用连接 Cosmos 模型服务。机器人 USD 仍按原预览脚本自动查找，必要时设置实际 `QX_ROBOT_USD`。先核对报告中的 articulation roots、左右臂和躯干关节/末端路径、夹爪 drive/mimic 属性及 Camera prim；再核对实际运行时 DOF 和策略相机/控制器，不能仅凭静态报告直接下发模型动作。
+
+**2026-10-20 用户提供的实际 USD 报告。** 原始字段与数值已归档至 [结构报告](../../logs/attachments/2026-10-20/qx_robot_inventory_user.json)，Agent 静态计算另存 [结构统计](../../logs/data/2026-10-20/qx_inventory_analysis.json)。这是用户服务器导出后的反馈，不是 Agent 加载 USD 或运行 PhysX 的结果。报告的源资产为 `/srv/workspace/c00932551/QX_robot/QX_robot/QX_USD/QX_and_picker.usd`，源和组合 stage 均为 metersPerUnit=1.0、Z up。
+
+以下路径均相对 `/World/robot/`：
+
+| 用途 | 实际 USD 路径/名称 |
+|---|---|
+| articulation root | `QX_USD/base_link` |
+| 左臂 / 末端候选 | `QX_USD/joints/LeftArm_0..6` / `QX_USD/left07` |
+| 右臂 / 末端候选 | `QX_USD/joints/RightArm_0..6` / `QX_USD/right07` |
+| 腰腿 / 躯干候选 | `QX_USD/joints/LegWaist_0..5` / `QX_USD/waist03` |
+| 左夹爪 drive 候选 | `Picker_USD_left/joints/hand_narrow1_joint` |
+| 右夹爪 drive 候选 | `Picker_USD_right/joints/hand_narrow1_joint` |
+| 左腕相机 | `Picker_USD_left/base_link/D405_left/camera_link/waist_camera` |
+| 右腕相机 | `Picker_USD_right/base_link/D405_right/camera_link/waist_camera` |
+
+报告包含 46 个刚体、45 个 joint（42 个转动、3 个固定）和 2 个 Camera prim。静态 body0/body1 图从所列根节点连通所有 46 个刚体，但这不是运行时 DOF 数量或初始化验证。两夹爪各一个关节带 angular drive schema，其余各 7 个带 mimic schema；两侧有同名关节和刚体，运行时须核对完整路径与实际索引，不可只按 `hand_narrow1_joint` 或 `base_link` 短名区分左右。夹爪候选 drive 的原始限位为 `[-46.0, 0.0]`，开闭方向、数据数值映射和 TCP 仍未标定。
+
+USD revolute joint 的 lower/upperLimit 单位是度（见 [OpenUSD 定义](https://openusd.org/dev/api/class_usd_physics_revolute_joint.html)），后续控制器若使用弧度需要转换；报告本身不换算。`LegWaist_2`、`LeftArm_0`、`RightArm_0` 的关键限位与用户主版 URDF 参考相符，不能据此证明所有模型版本细节相同。机器人子树只列出左右腕两路相机，策略的 `cam_high` 还需检查场景中的其他相机或新增并对齐训练视角；两路 Camera prim 尚不等于已配置好 Isaac Lab RGB 观测。
+
+旧报告缺少 mimic referenceJoint 关系是导出工具遗漏，不是已确认的资产错误。可更新代码后保留旧报告、另导出完整关系：
+
+```bash
+bash scripts/run_qx_banana.sh --headless --inspect-robot \
+  --robot-report output/qx_robot_inventory_v2.json
+```
 
 另一个独立待确认项是训练数据语义：用户资料第 7 节列出 base/world/末端/waist03 等常见选项，并未指定数据实际使用哪一种；URDF 的米/弧度也不能证明存储的动作已是物理单位。需检查 `leftarm_cmd_cart_pos`、`rightarm_cmd_cart_pos`、`torso_cmd_cart_pos`、夹爪命令及对应状态的生产代码，落实绝对/增量、参考系、旋转定义、TCP 偏移和生产端归一化，才能实现控制转换。
 

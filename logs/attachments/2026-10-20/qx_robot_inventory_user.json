@@ -1,0 +1,2534 @@
+{
+  "report_kind": "static_composed_usd_inventory",
+  "robot_root": "/World/robot",
+  "stage_metadata": {
+    "metersPerUnit": 1.0,
+    "upAxis": "Z"
+  },
+  "articulation_roots": [
+    "/World/robot/QX_USD/base_link"
+  ],
+  "rigid_bodies": [
+    {
+      "path": "/World/robot/QX_USD/base_link",
+      "name": "base_link"
+    },
+    {
+      "path": "/World/robot/QX_USD/wheel01",
+      "name": "wheel01"
+    },
+    {
+      "path": "/World/robot/QX_USD/wheel02",
+      "name": "wheel02"
+    },
+    {
+      "path": "/World/robot/QX_USD/wheel03",
+      "name": "wheel03"
+    },
+    {
+      "path": "/World/robot/QX_USD/wheel04",
+      "name": "wheel04"
+    },
+    {
+      "path": "/World/robot/QX_USD/leg01",
+      "name": "leg01"
+    },
+    {
+      "path": "/World/robot/QX_USD/leg02",
+      "name": "leg02"
+    },
+    {
+      "path": "/World/robot/QX_USD/leg03",
+      "name": "leg03"
+    },
+    {
+      "path": "/World/robot/QX_USD/waist01",
+      "name": "waist01"
+    },
+    {
+      "path": "/World/robot/QX_USD/waist02",
+      "name": "waist02"
+    },
+    {
+      "path": "/World/robot/QX_USD/waist03",
+      "name": "waist03"
+    },
+    {
+      "path": "/World/robot/QX_USD/head21",
+      "name": "head21"
+    },
+    {
+      "path": "/World/robot/QX_USD/head22",
+      "name": "head22"
+    },
+    {
+      "path": "/World/robot/QX_USD/left01",
+      "name": "left01"
+    },
+    {
+      "path": "/World/robot/QX_USD/left02",
+      "name": "left02"
+    },
+    {
+      "path": "/World/robot/QX_USD/left03",
+      "name": "left03"
+    },
+    {
+      "path": "/World/robot/QX_USD/left04",
+      "name": "left04"
+    },
+    {
+      "path": "/World/robot/QX_USD/left05",
+      "name": "left05"
+    },
+    {
+      "path": "/World/robot/QX_USD/left06",
+      "name": "left06"
+    },
+    {
+      "path": "/World/robot/QX_USD/left07",
+      "name": "left07"
+    },
+    {
+      "path": "/World/robot/QX_USD/right01",
+      "name": "right01"
+    },
+    {
+      "path": "/World/robot/QX_USD/right02",
+      "name": "right02"
+    },
+    {
+      "path": "/World/robot/QX_USD/right03",
+      "name": "right03"
+    },
+    {
+      "path": "/World/robot/QX_USD/right04",
+      "name": "right04"
+    },
+    {
+      "path": "/World/robot/QX_USD/right05",
+      "name": "right05"
+    },
+    {
+      "path": "/World/robot/QX_USD/right06",
+      "name": "right06"
+    },
+    {
+      "path": "/World/robot/QX_USD/right07",
+      "name": "right07"
+    },
+    {
+      "path": "/World/robot/QX_USD/head23_main",
+      "name": "head23_main"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/base_link",
+      "name": "base_link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_narrow1_Link",
+      "name": "hand_narrow1_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_narrow2_Link",
+      "name": "hand_narrow2_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_narrow3_Link",
+      "name": "hand_narrow3_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_narrow_loop_Link",
+      "name": "hand_narrow_loop_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_wide1_Link",
+      "name": "hand_wide1_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_wide2_Link",
+      "name": "hand_wide2_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_narrow3_Link_01",
+      "name": "hand_narrow3_Link_01"
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/hand_narrow_loop_Link_01",
+      "name": "hand_narrow_loop_Link_01"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/base_link",
+      "name": "base_link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_narrow1_Link",
+      "name": "hand_narrow1_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_narrow2_Link",
+      "name": "hand_narrow2_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_narrow3_Link",
+      "name": "hand_narrow3_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_narrow_loop_Link",
+      "name": "hand_narrow_loop_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_wide1_Link",
+      "name": "hand_wide1_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_wide2_Link",
+      "name": "hand_wide2_Link"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_narrow3_Link_01",
+      "name": "hand_narrow3_Link_01"
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/hand_narrow_loop_Link_01",
+      "name": "hand_narrow_loop_Link_01"
+    }
+  ],
+  "joints": [
+    {
+      "path": "/World/robot/QX_USD/joints/Base_0",
+      "name": "Base_0",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/wheel01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 225.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 0.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.43629077076911926,
+        "physics:localPos0": [
+          0.24230000376701355,
+          0.24230000376701355,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0.38268343, 0, 0, 0.9238795)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": {
+          "nonfinite_float": "-inf"
+        },
+        "physics:upperLimit": {
+          "nonfinite_float": "inf"
+        },
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": {
+          "nonfinite_float": "inf"
+        }
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/Base_1",
+      "name": "Base_1",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/wheel02"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 225.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 0.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.43703538179397583,
+        "physics:localPos0": [
+          -0.24230000376701355,
+          0.24230000376701355,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0.38268343, 0, 0, -0.9238795)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": {
+          "nonfinite_float": "-inf"
+        },
+        "physics:upperLimit": {
+          "nonfinite_float": "inf"
+        },
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": {
+          "nonfinite_float": "inf"
+        }
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/Base_2",
+      "name": "Base_2",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/wheel03"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 225.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 0.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "force",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.4400162398815155,
+        "physics:localPos0": [
+          -0.24230000376701355,
+          -0.24230000376701355,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0.9238795, 0, 0, -0.38268346)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": {
+          "nonfinite_float": "-inf"
+        },
+        "physics:upperLimit": {
+          "nonfinite_float": "inf"
+        },
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": {
+          "nonfinite_float": "inf"
+        }
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/Base_3",
+      "name": "Base_3",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/wheel04"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 225.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 0.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.4395265579223633,
+        "physics:localPos0": [
+          0.24230000376701355,
+          -0.24230000376701355,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0.9238795, 0, 0, 0.38268346)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": {
+          "nonfinite_float": "-inf"
+        },
+        "physics:upperLimit": {
+          "nonfinite_float": "inf"
+        },
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": {
+          "nonfinite_float": "inf"
+        }
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LegWaist_0",
+      "name": "LegWaist_0",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/leg01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 1000.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 10000.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 5.491913795471191,
+        "physics:localPos0": [
+          0.0,
+          0.11140000075101852,
+          0.1875
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -30.0,
+        "physics:upperLimit": 30.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LegWaist_1",
+      "name": "LegWaist_1",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/leg01"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/leg02"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 1000.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 10000.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 8.800634384155273,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.12200000137090683
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -90.0,
+        "physics:upperLimit": 90.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LegWaist_2",
+      "name": "LegWaist_2",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/leg02"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/leg03"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 1000.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 10000.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 20.224895477294922,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.2849999964237213
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -144.99998474121094,
+        "physics:upperLimit": 0.9999999403953552,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LegWaist_3",
+      "name": "LegWaist_3",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/leg03"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/waist01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 1000.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 10000.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 21.008075714111328,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.3179999887943268
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -9.999999046325684,
+        "physics:upperLimit": 79.99999237060547,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LegWaist_4",
+      "name": "LegWaist_4",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/waist01"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/waist02"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 1000.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 10000.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 10.086956024169922,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.11999999731779099
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -30.0,
+        "physics:upperLimit": 30.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LegWaist_5",
+      "name": "LegWaist_5",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/waist02"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/waist03"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 1000.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 10000.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 7.273127555847168,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.35499998927116394
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -180.0,
+        "physics:upperLimit": 180.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/Head_0",
+      "name": "Head_0",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/waist03"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/head21"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.0987064316868782,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.09600000083446503
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -90.0,
+        "physics:upperLimit": 90.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/Head_1",
+      "name": "Head_1",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/head21"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/head22"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 33.599998474121094,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.03349069133400917,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.10300000011920929
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -90.0,
+        "physics:upperLimit": 90.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/Head_2",
+      "name": "Head_2",
+      "type": "PhysicsFixedJoint",
+      "applied_schemas": [],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/head22"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/head23_main"
+        ]
+      },
+      "raw_usd_attributes": {
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.0043230862356722355,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          0.03999999910593033
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)"
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LeftArm_0",
+      "name": "LeftArm_0",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/waist03"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/left01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 60.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 600.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 2.369800090789795,
+        "physics:localPos0": [
+          0.1256999969482422,
+          0.0,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -180.0,
+        "physics:upperLimit": 120.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LeftArm_1",
+      "name": "LeftArm_1",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/left01"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/left02"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 60.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 600.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 1.9392365217208862,
+        "physics:localPos0": [
+          0.07900000363588333,
+          0.0,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -169.99998474121094,
+        "physics:upperLimit": 9.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LeftArm_2",
+      "name": "LeftArm_2",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/left02"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/left03"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 60.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 600.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 1.8539354801177979,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.11299999803304672
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -175.0,
+        "physics:upperLimit": 175.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LeftArm_3",
+      "name": "LeftArm_3",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/left03"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/left04"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 50.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 500.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 1.051627516746521,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.18700000643730164
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -128.99998474121094,
+        "physics:upperLimit": 9.999999046325684,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LeftArm_4",
+      "name": "LeftArm_4",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/left04"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/left05"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 40.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 400.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.3520892262458801,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.10100000351667404
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -175.0,
+        "physics:upperLimit": 175.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LeftArm_5",
+      "name": "LeftArm_5",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/left05"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/left06"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 300.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.12302065640687943,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.1589999943971634
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -95.0,
+        "physics:upperLimit": 95.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/LeftArm_6",
+      "name": "LeftArm_6",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/left06"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/left07"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 300.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.009286416694521904,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.09049999713897705
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -90.0,
+        "physics:upperLimit": 90.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/RightArm_0",
+      "name": "RightArm_0",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/waist03"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/right01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 60.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 600.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 2.371589422225952,
+        "physics:localPos0": [
+          -0.1256999969482422,
+          0.0,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(-4.371139e-8, 0, 0, 1)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -120.0,
+        "physics:upperLimit": 180.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/RightArm_1",
+      "name": "RightArm_1",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/right01"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/right02"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 60.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 600.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 1.9388108253479004,
+        "physics:localPos0": [
+          0.07900000363588333,
+          0.0,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -169.99998474121094,
+        "physics:upperLimit": 9.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/RightArm_2",
+      "name": "RightArm_2",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/right02"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/right03"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 60.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 600.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 1.8533861637115479,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.11299999803304672
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -175.0,
+        "physics:upperLimit": 175.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/RightArm_3",
+      "name": "RightArm_3",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/right03"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/right04"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 50.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 500.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 1.051335096359253,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.18700000643730164
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -9.999999046325684,
+        "physics:upperLimit": 128.99998474121094,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/RightArm_4",
+      "name": "RightArm_4",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/right04"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/right05"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 40.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 400.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.35203567147254944,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.10100000351667404
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -175.0,
+        "physics:upperLimit": 175.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/RightArm_5",
+      "name": "RightArm_5",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/right05"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/right06"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 300.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Y",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.12300315499305725,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.1589999943971634
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -95.0,
+        "physics:upperLimit": 95.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/QX_USD/joints/RightArm_6",
+      "name": "RightArm_6",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/right06"
+        ],
+        "physics:body1": [
+          "/World/robot/QX_USD/right07"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 300.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "X",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.009292448870837688,
+        "physics:localPos0": [
+          0.0,
+          0.0,
+          -0.09049999713897705
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(1, 0, 0, 0)",
+        "physics:localRot1": "(1, 0, 0, 0)",
+        "physics:lowerLimit": -90.0,
+        "physics:upperLimit": 90.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_narrow1_joint",
+      "name": "hand_narrow1_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_narrow1_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": -46.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00036006345180794597,
+        "physics:localPos0": [
+          0.0,
+          -0.019500000402331352,
+          0.05649999901652336
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -46.0,
+        "physics:upperLimit": 0.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_narrow2_joint",
+      "name": "hand_narrow2_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/hand_narrow1_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_narrow2_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00010043752990895882,
+        "physics:localPos0": [
+          0.030851999297738075,
+          0.018550999462604523,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 0.009999999776482582,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_narrow3_joint",
+      "name": "hand_narrow3_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/hand_narrow2_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_narrow3_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 4.0798524423735216e-05,
+        "physics:localPos0": [
+          0.01811799965798855,
+          -0.01573999971151352,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 0.15000000596046448,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_narrow_loop_joint",
+      "name": "hand_narrow_loop_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_narrow_loop_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00022178319341037422,
+        "physics:localPos0": [
+          0.0,
+          -0.021632999181747437,
+          0.07387000322341919
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": -1.5,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_wide1_joint",
+      "name": "hand_wide1_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_wide1_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00047504689428023994,
+        "physics:localPos0": [
+          0.0,
+          0.019500000402331352,
+          0.05649999901652336
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 1.0,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_wide2_joint",
+      "name": "hand_wide2_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/hand_wide1_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_wide2_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.0001979512016987428,
+        "physics:localPos0": [
+          0.030851999297738075,
+          -0.018550999462604523,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": -0.009999999776482582,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_wide3_joint",
+      "name": "hand_wide3_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/hand_wide2_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_narrow3_Link_01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 9.805335139390081e-05,
+        "physics:localPos0": [
+          0.01811799965798855,
+          0.01573999971151352,
+          0.0
+        ],
+        "physics:localPos1": [
+          -5.609601227973826e-09,
+          -2.231735578561711e-07,
+          -7.678513793507591e-05
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0.0002702257, 6.733385e-8, 0.0131444745, 0.9999136)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": -0.15000000596046448,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/joints/hand_wide_loop_joint",
+      "name": "hand_wide_loop_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_left/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/hand_narrow_loop_Link_01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00024840235710144043,
+        "physics:localPos0": [
+          0.0,
+          0.021632999181747437,
+          0.07387000322341919
+        ],
+        "physics:localPos1": [
+          1.6226444632394532e-09,
+          2.998922354890965e-06,
+          -3.941509874039184e-08
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0.0002702257, 6.733385e-8, 0.0131444745, 0.9999136)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 1.5,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_left/base_link/AssemblerFixedJoint",
+      "name": "AssemblerFixedJoint",
+      "type": "PhysicsFixedJoint",
+      "applied_schemas": [],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/left07"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_left/base_link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "physics:breakForce": {
+          "nonfinite_float": "inf"
+        },
+        "physics:breakTorque": {
+          "nonfinite_float": "inf"
+        },
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:localPos0": [
+          -0.010136793367564678,
+          2.7378990125725977e-05,
+          -0.0491078719496727
+        ],
+        "physics:localPos1": [
+          -6.75182132425789e-11,
+          6.492584248007915e-13,
+          1.7950888553386335e-09
+        ],
+        "physics:localRot0": "(2.8327693e-16, 6.123234e-17, 1, 6.123234e-17)",
+        "physics:localRot1": "(1, 0, 0, 0)"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_narrow1_joint",
+      "name": "hand_narrow1_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysicsDriveAPI:angular"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_narrow1_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": -46.0,
+        "drive:angular:physics:targetVelocity": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00036006345180794597,
+        "physics:localPos0": [
+          0.0,
+          -0.019500000402331352,
+          0.05649999901652336
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -46.0,
+        "physics:upperLimit": 0.0,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_narrow2_joint",
+      "name": "hand_narrow2_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/hand_narrow1_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_narrow2_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00010043752990895882,
+        "physics:localPos0": [
+          0.030851999297738075,
+          0.018550999462604523,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 0.009999999776482582,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_narrow3_joint",
+      "name": "hand_narrow3_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/hand_narrow2_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_narrow3_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 4.0798524423735216e-05,
+        "physics:localPos0": [
+          0.01811799965798855,
+          -0.01573999971151352,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 0.15000000596046448,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_narrow_loop_joint",
+      "name": "hand_narrow_loop_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_narrow_loop_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00022178319341037422,
+        "physics:localPos0": [
+          0.0,
+          -0.021632999181747437,
+          0.07387000322341919
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": -1.5,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_wide1_joint",
+      "name": "hand_wide1_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_wide1_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00047504689428023994,
+        "physics:localPos0": [
+          0.0,
+          0.019500000402331352,
+          0.05649999901652336
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 1.0,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_wide2_joint",
+      "name": "hand_wide2_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/hand_wide1_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_wide2_Link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.0001979512016987428,
+        "physics:localPos0": [
+          0.030851999297738075,
+          -0.018550999462604523,
+          0.0
+        ],
+        "physics:localPos1": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0, 0, 1, 0)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": -0.009999999776482582,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_wide3_joint",
+      "name": "hand_wide3_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/hand_wide2_Link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_narrow3_Link_01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 9.805335139390081e-05,
+        "physics:localPos0": [
+          0.01811799965798855,
+          0.01573999971151352,
+          0.0
+        ],
+        "physics:localPos1": [
+          -5.609601227973826e-09,
+          -2.231735578561711e-07,
+          -7.678513793507591e-05
+        ],
+        "physics:localRot0": "(0, 0, 1, 0)",
+        "physics:localRot1": "(0.0002702257, 6.733385e-8, 0.0131444745, 0.9999136)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": -0.15000000596046448,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/joints/hand_wide_loop_joint",
+      "name": "hand_wide_loop_joint",
+      "type": "PhysicsRevoluteJoint",
+      "applied_schemas": [
+        "PhysicsJointStateAPI:angular",
+        "PhysxJointAPI",
+        "PhysxMimicJointAPI:rotX"
+      ],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/Picker_USD_right/base_link"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/hand_narrow_loop_Link_01"
+        ]
+      },
+      "raw_usd_attributes": {
+        "drive:angular:physics:damping": 20.0,
+        "drive:angular:physics:maxForce": 3.4028234663852886e+38,
+        "drive:angular:physics:stiffness": 100.0,
+        "drive:angular:physics:targetPosition": 0.0,
+        "drive:angular:physics:targetVelocity": null,
+        "drive:angular:physics:type": "acceleration",
+        "physics:axis": "Z",
+        "physics:breakForce": 3.4028234663852886e+38,
+        "physics:breakTorque": 3.4028234663852886e+38,
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:JointEquivalentInertia": 0.00024840235710144043,
+        "physics:localPos0": [
+          0.0,
+          0.021632999181747437,
+          0.07387000322341919
+        ],
+        "physics:localPos1": [
+          1.6226444632394532e-09,
+          2.998922354890965e-06,
+          -3.941509874039184e-08
+        ],
+        "physics:localRot0": "(-0.004648071, 0.70709276, -0.004648462, -0.70709026)",
+        "physics:localRot1": "(0.0002702257, 6.733385e-8, 0.0131444745, 0.9999136)",
+        "physics:lowerLimit": -179.9087371826172,
+        "physics:upperLimit": 179.9087371826172,
+        "physxJoint:armature": 0.0,
+        "physxJoint:jointFriction": 0.0,
+        "physxJoint:maxJointVelocity": 3.4028234663852886e+38,
+        "physxMimicJoint:rotX:gearing": 1.5,
+        "physxMimicJoint:rotX:offset": 0.0,
+        "physxMimicJoint:rotX:referenceJointAxis": "rotX"
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/base_link/AssemblerFixedJoint",
+      "name": "AssemblerFixedJoint",
+      "type": "PhysicsFixedJoint",
+      "applied_schemas": [],
+      "body_relationships": {
+        "physics:body0": [
+          "/World/robot/QX_USD/right07"
+        ],
+        "physics:body1": [
+          "/World/robot/Picker_USD_right/base_link"
+        ]
+      },
+      "raw_usd_attributes": {
+        "physics:breakForce": {
+          "nonfinite_float": "inf"
+        },
+        "physics:breakTorque": {
+          "nonfinite_float": "inf"
+        },
+        "physics:collisionEnabled": false,
+        "physics:excludeFromArticulation": false,
+        "physics:jointEnabled": true,
+        "physics:localPos0": [
+          -0.010312631726264954,
+          0.000886052381247282,
+          -0.049315325915813446
+        ],
+        "physics:localPos1": [
+          5.030131866590182e-11,
+          -6.389777595927626e-12,
+          1.6827387261386662e-09
+        ],
+        "physics:localRot0": "(-1.6081226e-16, -2.9959026e-16, 1, 5.0532154e-16)",
+        "physics:localRot1": "(1, 0, 0, 0)"
+      }
+    }
+  ],
+  "cameras": [
+    {
+      "path": "/World/robot/Picker_USD_left/base_link/D405_left/camera_link/waist_camera",
+      "name": "waist_camera",
+      "raw_usd_attributes": {
+        "clippingRange": [
+          0.009999999776482582,
+          10000000.0
+        ],
+        "focalLength": 10.0,
+        "horizontalAperture": 18.959999084472656,
+        "horizontalApertureOffset": 0.0,
+        "verticalAperture": 11.079999923706055,
+        "verticalApertureOffset": 0.0,
+        "xformOp:orient": "(0.5000000000000001, 0.5, -0.5, -0.49999999999999994)",
+        "xformOp:scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "xformOp:translate": [
+          0.003184444043917614,
+          -4.708226870311095e-17,
+          -1.0534804654914183e-16
+        ]
+      }
+    },
+    {
+      "path": "/World/robot/Picker_USD_right/base_link/D405_right/camera_link/waist_camera",
+      "name": "waist_camera",
+      "raw_usd_attributes": {
+        "clippingRange": [
+          0.009999999776482582,
+          10000000.0
+        ],
+        "focalLength": 10.0,
+        "horizontalAperture": 18.959999084472656,
+        "horizontalApertureOffset": 0.0,
+        "verticalAperture": 11.079999923706055,
+        "verticalApertureOffset": 0.0,
+        "xformOp:orient": "(0.5000000000000001, 0.5, -0.5, -0.49999999999999994)",
+        "xformOp:scale": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "xformOp:translate": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  ],
+  "not_verified": [
+    "PhysX/Isaac Lab articulation initialization, DOF membership/order and fixed-body merging",
+    "reference files, geometry, physics constraints and collision validity",
+    "robot model version, policy reference frames, units and absolute/delta conventions",
+    "actuator tuning, gripper coupling and dataset producer inverse transforms"
+  ],
+  "counts": {
+    "articulation_roots": 1,
+    "rigid_bodies": 46,
+    "joints": 45,
+    "cameras": 2
+  },
+  "source_robot_usd": "/srv/workspace/c00932551/QX_robot/QX_robot/QX_USD/QX_and_picker.usd",
+  "source_stage_metadata": {
+    "metersPerUnit": 1.0,
+    "upAxis": "Z"
+  }
+}
