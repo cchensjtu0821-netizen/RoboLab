@@ -86,52 +86,169 @@ def test_dls_singular_jacobian_and_joint_limits(singular):
         assert target[0, 0] > 0
 
 
-def test_real_action_controller_changes_both_arms_and_preserves_other_joints():
-    # Deliberately scramble indices to catch assumed contiguous DOF layouts.
-    ids = [[8, 2, 4, 6, 0, 10, 12], [15, 9, 3, 5, 7, 11, 13]]
-    q = torch.zeros(1, 18)
-    jacobians = torch.zeros(1, 3, 6, 18)
-    for row, columns in zip((0, 1), ids, strict=True):
+@pytest.fixture
+def qx_controller(monkeypatch):
+    # Scrambled runtime DOFs and root-excluded Jacobian rows exercise the actual
+    # constructor and Cartesian controller without an Isaac installation.
+    arm_ids = [[8, 2, 4, 6, 0, 10, 12], [15, 9, 3, 5, 7, 11, 13]]
+    torso_ids = [17, 19, 1, 21, 14, 23]
+    names = [f"held_{i}" for i in range(26)]
+    for prefix, ids in zip(("LeftArm", "RightArm", "LegWaist"), [*arm_ids, torso_ids], strict=True):
+        for axis, index in enumerate(ids):
+            names[index] = f"{prefix}_{axis}"
+    jacobians = torch.zeros(1, 3, 6, 26)
+    for row, columns in zip((0, 1, 2), [*arm_ids, torso_ids], strict=True):
         for axis in range(6):
             jacobians[0, row, axis, columns[axis]] = 1
+    body_names = ["base_link", "left07", "right07", "waist03"]
     robot = SimpleNamespace(
         device="cpu",
         is_fixed_base=True,
+        joint_names=names,
+        body_names=body_names,
+        find_joints=lambda requested, preserve_order: ([names.index(n) for n in requested], requested),
+        find_bodies=lambda name: ([body_names.index(name)], [name]),
         data=SimpleNamespace(
-            joint_pos=q,
-            body_pos_w=torch.zeros(1, 4, 3),
+            joint_pos=torch.zeros(1, 26),
+            root_pos_w=torch.zeros(1, 3),
+            root_quat_w=torch.tensor([[1.0, 0.0, 0.0, 0.0]]),
+            body_pos_w=torch.tensor([[[0.0, 0.0, 0.0], [0.5, 0.2, 1.0], [0.5, -0.2, 1.0], [0.0, 0.0, 1.0]]]),
             body_quat_w=torch.tensor([[[1.0, 0.0, 0.0, 0.0]] * 4]),
-            soft_joint_pos_limits=torch.tensor([[[-1.0, 1.0]] * 18]),
+            soft_joint_pos_limits=torch.tensor([[[-1.0, 1.0]] * 26]),
         ),
         root_physx_view=SimpleNamespace(get_jacobians=lambda: jacobians),
     )
-    controller = QxArms.__new__(QxArms)
-    controller.robot = robot
-    controller.args = SimpleNamespace(motion_gain=1.0, motion_radius=0.1, motion_joint_step=0.02)
-    controller.arms = [
-        {
-            "ids": columns,
-            "body": body,
-            "reference_q": torch.tensor([[1.0, 0.0, 0.0, 0.0]]),
-            "start_p": torch.zeros(1, 3),
-        }
-        for body, columns in zip((1, 2), ids, strict=True)
-    ]
-    controller.ids = sum(ids, [])
-    controller.initial, controller.hold = q.clone(), q.clone()
-    controller.max_command = 0.0
-    controller.max_policy_translation = 0.0
-    controller.max_policy_rotation = 0.0
+    root = "/World/robot/QX_USD/"
+
+    class Joint:
+        def __init__(self, parent, child, local_pos=(0.0, 0.0, 0.0)):
+            self.parent, self.child, self.local_pos = parent, child, local_pos
+
+        def GetBody0Rel(self):
+            return SimpleNamespace(GetTargets=lambda: [root + self.parent])
+
+        def GetBody1Rel(self):
+            return SimpleNamespace(GetTargets=lambda: [root + self.child])
+
+        def GetLocalPos0Attr(self):
+            return SimpleNamespace(Get=lambda: self.local_pos)
+
+        def GetLocalRot0Attr(self):
+            return SimpleNamespace(
+                Get=lambda: SimpleNamespace(GetReal=lambda: 1.0, GetImaginary=lambda: (0.0, 0.0, 0.0))
+            )
+
+    chain = ("base_link", "leg01", "leg02", "leg03", "waist01", "waist02", "waist03")
+    joints = {root + f"joints/LegWaist_{i}": Joint(chain[i], chain[i + 1]) for i in range(6)}
+    joints[root + "joints/LeftArm_0"] = Joint("waist03", "left01", (0.1, 0.2, 0.0))
+    joints[root + "joints/RightArm_0"] = Joint("waist03", "right01", (0.1, -0.2, 0.0))
+    pxr = types.ModuleType("pxr")
+    pxr.UsdPhysics = SimpleNamespace(Joint=lambda prim: prim)
+    monkeypatch.setitem(sys.modules, "pxr", pxr)
+    stage = SimpleNamespace(GetPrimAtPath=lambda path: joints.get(path))
+    args = SimpleNamespace(motion_gain=1.0, motion_radius=0.1, motion_joint_step=0.02)
+    return QxArms(robot, stage, args), stage
+
+
+def test_real_action_controller_changes_arms_and_torso_preserves_held_joints(qx_controller):
+    controller, _ = qx_controller
     actions = np.zeros((16, 20), dtype=np.float32)
     actions[1:, 0] = 0.05
     actions[1:, 8] = 0.05
-    # Large values in held channels must not become torso/gripper joint targets.
-    actions[:, [6, 13, 14, 15, 16, 17, 18, 19]] = 100
+    actions[1:, 16] = 0.05  # torso z translation, not a direct LegWaist joint angle
+    actions[:, [6, 13]] = 100  # Grippers must remain held.
     controller.begin_chunk(actions)
     controller.apply(actions[1])
-    assert controller.hold[0, ids[0][0]] > 0
-    assert controller.hold[0, ids[1][1]] > 0
-    assert torch.all(controller.hold[0, [1, 14, 16, 17]] == 0)
+    assert controller.hold[0, controller.arms[0]["ids"][0]] > 0
+    assert controller.hold[0, controller.arms[1]["ids"][1]] > 0
+    assert controller.hold[0, controller.torso_ids[2]] > 0
+    held = [i for i in range(26) if i not in controller.controlled_ids]
+    assert torch.all(controller.hold[0, held] == 0)
+    assert controller.max_torso_command > 0
+    controller.robot.data.joint_pos.copy_(controller.hold * 0.8)
+    controller.measure()
+    assert controller.max_torso_motion == pytest.approx(controller.max_torso_command * 0.8)
+    targets = []
+    controller.robot.set_joint_position_target = lambda target: targets.append(target.clone())
+    controller.robot.write_data_to_sim = lambda: None
+    controller.write()
+    torch.testing.assert_close(targets[0], controller.hold)
+
+
+@pytest.mark.parametrize("field", list(range(14, 20)))
+def test_each_torso_pose_axis_drives_torso_only(qx_controller, field):
+    controller, _ = qx_controller
+    actions = np.zeros((16, 20), dtype=np.float32)
+    actions[1:, field] = 0.08
+    controller.begin_chunk(actions)
+    controller.apply(actions[0])
+    torch.testing.assert_close(controller.hold, controller.initial)
+    controller.apply(actions[1])
+    assert controller.hold[0, controller.torso_ids[field - 14]] > 0
+    assert torch.all(controller.hold[0, controller.ids] == 0)
+    assert controller.hold.abs().max() <= 0.020001
+
+
+def test_arm_only_policy_keeps_torso_targets_unchanged(qx_controller):
+    controller, _ = qx_controller
+    actions = np.zeros((16, 20), dtype=np.float32)
+    actions[1:, 0] = 0.05
+    controller.begin_chunk(actions)
+    controller.apply(actions[1])
+    assert controller.hold[0, controller.ids].abs().max() > 0
+    assert torch.all(controller.hold[0, controller.torso_ids] == 0)
+
+
+def test_torso_motion_updates_arm_observations_and_targets_without_world_countermotion(qx_controller):
+    controller, _ = qx_controller
+    r = controller.robot
+    before = controller.state().copy()
+    actions = np.zeros((16, 20), dtype=np.float32)
+    controller.begin_chunk(actions)
+    # Rigidly translate and rotate the whole torso+arm assembly while the fixed
+    # root stays put. Shoulder-relative state/targets must remain unchanged.
+    q = quat_from_rotvec(torch.tensor([[0.0, 0.0, 0.3]]))
+    shift = torch.tensor([[0.03, 0.02, 0.01]])
+    center = r.data.body_pos_w[:, 3].clone()
+    for b in (1, 2, 3):
+        r.data.body_pos_w[:, b] = center + shift + quat_apply(q, r.data.body_pos_w[:, b] - center)
+        r.data.body_quat_w[:, b] = q
+    after = controller.state()
+    np.testing.assert_allclose(after[:14], before[:14], atol=1e-6)
+    assert not np.allclose(after[14:], before[14:])
+    controller.apply(actions[0])
+    torch.testing.assert_close(controller.hold[:, controller.ids], torch.zeros(1, 14), atol=1e-6, rtol=0)
+
+
+def test_torso_limits_rotated_root_and_reanchoring(qx_controller):
+    controller, _ = qx_controller
+    r = controller.robot
+    # Base-frame x must rotate into world y. No arm channels change.
+    r.data.root_quat_w[:] = quat_from_rotvec(torch.tensor([[0.0, 0.0, math.pi / 2]]))
+    for group in [*controller.arms, controller.torso]:
+        p, q = controller.reference_pose(group)
+        group["start_p"] = quat_apply(quat_inv(q), r.data.body_pos_w[:, group["body"]] - p)
+    actions = np.zeros((16, 20), dtype=np.float32)
+    actions[1:, 14] = 100.0
+    controller.begin_chunk(actions)
+    controller.apply(actions[1])
+    assert controller.hold[0, controller.torso_ids[1]] > 0
+    assert controller.hold[0, controller.torso_ids[0]].abs() < 1e-6
+    r.data.soft_joint_pos_limits[:, controller.torso_ids[1]] = torch.tensor([-0.001, 0.001])
+    controller.apply(actions[1])
+    assert controller.hold[0, controller.torso_ids[1]] <= 0.001001
+    # The first prediction of a new chunk is an anchor, including huge absolute
+    # values. It must not jump the torso to the policy's absolute xyz values.
+    controller.begin_chunk(actions[1:])
+    controller.apply(actions[1])
+    torch.testing.assert_close(controller.hold, controller.initial)
+
+
+def test_invalid_torso_chain_fails_instead_of_silently_ignoring_policy(qx_controller):
+    controller, stage = qx_controller
+    stage.GetPrimAtPath("/World/robot/QX_USD/joints/LegWaist_4").parent = "wrong_parent"
+    with pytest.raises(ValueError, match="Unexpected torso chain at LegWaist_4"):
+        QxArms(controller.robot, stage, controller.args)
 
 
 def test_asset_preflight_rejects_lfs_and_invalid_limits(tmp_path):

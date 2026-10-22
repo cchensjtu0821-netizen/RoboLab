@@ -5,7 +5,7 @@
 
 The QX USD preview is not a robot control registration. Closed-loop evaluation
 requires --registration module:function. --motion-smoke supplies a built-in
-anchored dual-arm physics diagnostic; see README_MOZ.md for its limits.
+anchored torso and dual-arm physics diagnostic; see README_MOZ.md for its limits.
 """
 
 from __future__ import annotations

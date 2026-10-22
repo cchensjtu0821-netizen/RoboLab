@@ -3,7 +3,7 @@
 
 """Single-robot Cosmos/QX physics diagnostic in the RoboLab banana scene.
 
-This intentionally uses an anchored flange trajectory, holds torso/grippers,
+This intentionally uses an anchored flange trajectory, drives torso and arms, holds grippers,
 and does not compute benchmark success. It does not claim SDK/TCP calibration.
 Isaac imports are deferred until after AppLauncher has started.
 """
@@ -202,15 +202,39 @@ def compose_scene(args, phase=lambda name: None):
 
 
 class QxArms:
-    """Resolve real runtime DOFs and drive the two unique flange links."""
+    """Drive the torso chain and both flanges in their moving reference frames."""
 
     def __init__(self, robot, stage, args):
         import torch
         from pxr import UsdPhysics
 
-        from policies.cosmos3.motion_math import quat_apply, quat_mul
+        from policies.cosmos3.motion_math import quat_apply, quat_inv
 
         self.robot, self.args = robot, args
+        waist, _ = robot.find_bodies("waist03")
+        if len(waist) != 1:
+            raise ValueError(f"Missing unique waist03 in runtime bodies: {robot.body_names}")
+        names = [f"LegWaist_{i}" for i in range(6)]
+        torso_ids, resolved = robot.find_joints(names, preserve_order=True)
+        if resolved != names:
+            raise ValueError(f"Expected QX torso joints {names}, found {resolved}; runtime joints: {robot.joint_names}")
+        chain = ("base_link", "leg01", "leg02", "leg03", "waist01", "waist02", "waist03")
+        for index, name in enumerate(names):
+            joint = UsdPhysics.Joint(stage.GetPrimAtPath(f"/World/robot/QX_USD/joints/{name}"))
+            if (
+                not joint
+                or [str(p) for p in joint.GetBody0Rel().GetTargets()] != [f"/World/robot/QX_USD/{chain[index]}"]
+                or [str(p) for p in joint.GetBody1Rel().GetTargets()] != [f"/World/robot/QX_USD/{chain[index + 1]}"]
+            ):
+                raise ValueError(f"Unexpected torso chain at {name}; expected {chain[index]} -> {chain[index + 1]}")
+        self.waist = waist[0]
+        self.torso = {
+            "ids": torso_ids,
+            "body": self.waist,
+            "reference_body": None,
+            "local_p": torch.zeros((1, 3), device=robot.device),
+            "local_q": torch.tensor([[1.0, 0.0, 0.0, 0.0]], device=robot.device),
+        }
         self.arms = []
         for side, prefix in (("left", "LeftArm"), ("right", "RightArm")):
             names = [f"{prefix}_{i}" for i in range(7)]
@@ -218,37 +242,52 @@ class QxArms:
             if resolved != names:
                 raise ValueError(f"Expected QX joints {names}, found {resolved}; runtime joints: {robot.joint_names}")
             body, _ = robot.find_bodies(f"{side}07")
-            waist, _ = robot.find_bodies("waist03")
-            if len(body) != 1 or len(waist) != 1:
-                raise ValueError(f"Missing unique {side}07/waist03 in runtime bodies: {robot.body_names}")
+            if len(body) != 1:
+                raise ValueError(f"Missing unique {side}07 in runtime bodies: {robot.body_names}")
             joint = UsdPhysics.Joint(stage.GetPrimAtPath(f"/World/robot/QX_USD/joints/{prefix}_0"))
             if not joint or [str(p) for p in joint.GetBody0Rel().GetTargets()] != ["/World/robot/QX_USD/waist03"]:
                 raise ValueError(f"Unexpected {prefix}_0 parent; expected QX_USD/waist03")
             pos = torch.tensor([list(joint.GetLocalPos0Attr().Get())], device=robot.device)
             q = joint.GetLocalRot0Attr().Get()
             quat = torch.tensor([[q.GetReal(), *q.GetImaginary()]], device=robot.device)
-            parent_q = robot.data.body_quat_w[:, waist[0]]
-            reference_q = quat_mul(parent_q, quat)
-            reference_p = robot.data.body_pos_w[:, waist[0]] + quat_apply(parent_q, pos)
             self.arms.append(
                 {
                     "side": side,
                     "ids": ids,
                     "body": body[0],
-                    "reference_p": reference_p,
-                    "reference_q": reference_q,
-                    "start_p": robot.data.body_pos_w[:, body[0]].clone(),
+                    "reference_body": self.waist,
+                    "local_p": pos,
+                    "local_q": quat,
                 }
             )
-        self.waist = waist[0]
         self.ids = [i for arm in self.arms for i in arm["ids"]]
+        self.torso_ids = torso_ids
+        self.controlled_ids = self.ids + self.torso_ids
+        for group in [*self.arms, self.torso]:
+            reference_p, reference_q = self.reference_pose(group)
+            group["start_p"] = quat_apply(
+                quat_inv(reference_q), robot.data.body_pos_w[:, group["body"]] - reference_p
+            ).clone()
         self.initial = robot.data.joint_pos.clone()
         self.hold = self.initial.clone()
         self.max_motion = 0.0
         self.max_command = 0.0
+        self.max_torso_motion = 0.0
+        self.max_torso_command = 0.0
         self.max_policy_translation = 0.0
         self.max_policy_rotation = 0.0
         self.first = None
+
+    def reference_pose(self, group):
+        from policies.cosmos3.motion_math import quat_apply, quat_mul
+
+        r = self.robot
+        body = group["reference_body"]
+        if body is None:
+            parent_p, parent_q = r.data.root_pos_w, r.data.root_quat_w
+        else:
+            parent_p, parent_q = r.data.body_pos_w[:, body], r.data.body_quat_w[:, body]
+        return parent_p + quat_apply(parent_q, group["local_p"]), quat_mul(parent_q, group["local_q"])
 
     def state(self):
         """Provisional live flange state, not calibrated SDK TCP observations."""
@@ -260,9 +299,8 @@ class QxArms:
         fields = []
         for arm in self.arms:
             b = arm["body"]
-            fields.append(
-                relative_pose(arm["reference_p"], arm["reference_q"], r.data.body_pos_w[:, b], r.data.body_quat_w[:, b])
-            )
+            reference_p, reference_q = self.reference_pose(arm)
+            fields.append(relative_pose(reference_p, reference_q, r.data.body_pos_w[:, b], r.data.body_quat_w[:, b]))
             # Grippers are held; 0 is an explicit diagnostic placeholder, not a
             # measured jaw opening. Use --probe-sample for known dataset inputs.
             fields.append(torch.zeros((1, 1), device=r.device))
@@ -279,11 +317,15 @@ class QxArms:
     def begin_chunk(self, actions):
         import torch
 
+        from policies.cosmos3.motion_math import quat_apply, quat_inv, quat_mul
+
         self.first = torch.as_tensor(actions[0], device=self.robot.device)
-        for arm in self.arms:
-            b = arm["body"]
-            arm["anchor_p"] = self.robot.data.body_pos_w[:, b].clone()
-            arm["anchor_q"] = self.robot.data.body_quat_w[:, b].clone()
+        for group in [*self.arms, self.torso]:
+            b = group["body"]
+            reference_p, reference_q = self.reference_pose(group)
+            inverse = quat_inv(reference_q)
+            group["anchor_p"] = quat_apply(inverse, self.robot.data.body_pos_w[:, b] - reference_p).clone()
+            group["anchor_q"] = quat_mul(inverse, self.robot.data.body_quat_w[:, b]).clone()
 
     def apply(self, action):
         import torch
@@ -292,6 +334,7 @@ class QxArms:
             anchored_target,
             bounded_dls,
             limit_norm,
+            quat_apply,
             quat_from_rotvec,
             quat_inv,
             quat_mul,
@@ -301,7 +344,7 @@ class QxArms:
         r = self.robot
         action = torch.as_tensor(action, device=r.device)
         jacobians = r.root_physx_view.get_jacobians()
-        for arm, offset in zip(self.arms, (0, 7), strict=True):
+        for group, offset in zip([*self.arms, self.torso], (0, 7, 14), strict=True):
             first, command = self.first[offset : offset + 6].clone(), action[offset : offset + 6].clone()
             command[:3] = first[:3] + (command[:3] - first[:3]) * self.args.motion_gain
             self.max_policy_translation = max(self.max_policy_translation, float((command[:3] - first[:3]).norm()))
@@ -310,14 +353,16 @@ class QxArms:
             pos, quat = anchored_target(
                 first[None],
                 command[None],
-                arm["anchor_p"],
-                arm["anchor_q"],
-                arm["reference_q"],
+                group["anchor_p"],
+                group["anchor_q"],
+                torch.tensor([[1.0, 0.0, 0.0, 0.0]], device=r.device),
                 self.args.motion_radius,
                 0.25,
             )
-            pos = arm["start_p"] + limit_norm(pos - arm["start_p"], self.args.motion_radius)
-            b, ids = arm["body"], arm["ids"]
+            pos = group["start_p"] + limit_norm(pos - group["start_p"], self.args.motion_radius)
+            reference_p, reference_q = self.reference_pose(group)
+            pos, quat = reference_p + quat_apply(reference_q, pos), quat_mul(reference_q, quat)
+            b, ids = group["body"], group["ids"]
             body_index = b - 1 if r.is_fixed_base else b
             columns = ids if r.is_fixed_base else [i + 6 for i in ids]
             jacobian = jacobians[:, body_index][:, :, columns]
@@ -335,6 +380,9 @@ class QxArms:
         self.max_command = max(
             self.max_command, float((self.hold[:, self.ids] - self.initial[:, self.ids]).abs().max())
         )
+        self.max_torso_command = max(
+            self.max_torso_command, float((self.hold[:, self.torso_ids] - self.initial[:, self.torso_ids]).abs().max())
+        )
 
     def write(self):
         self.robot.set_joint_position_target(self.hold)
@@ -347,6 +395,9 @@ class QxArms:
         if not torch.isfinite(positions).all():
             raise ValueError("Non-finite simulated joint positions")
         self.max_motion = max(self.max_motion, float((positions[:, self.ids] - self.initial[:, self.ids]).abs().max()))
+        self.max_torso_motion = max(
+            self.max_torso_motion, float((positions[:, self.torso_ids] - self.initial[:, self.torso_ids]).abs().max())
+        )
 
 
 def initialize_live_camera(camera, name, startup):
@@ -491,8 +542,9 @@ def _run_motion(args, app, output, startup):
                 "arms": ImplicitActuatorCfg(
                     joint_names_expr=["LeftArm_.*", "RightArm_.*"], stiffness=400.0, damping=40.0
                 ),
+                "torso": ImplicitActuatorCfg(joint_names_expr=["LegWaist_[0-5]"], stiffness=None, damping=None),
                 "held": ImplicitActuatorCfg(
-                    joint_names_expr=["(?!LeftArm_|RightArm_).*"], stiffness=None, damping=None
+                    joint_names_expr=["(?!LeftArm_|RightArm_|LegWaist_).*"], stiffness=None, damping=None
                 ),
             },
         )
@@ -515,11 +567,18 @@ def _run_motion(args, app, output, startup):
         cameras["cam_high"].set_world_poses_from_view(
             torch.tensor([[1.8, 1.6, 1.8]], device=sim.device), torch.tensor([[0.0, 0.0, 0.6]], device=sim.device)
         )
-    print("QX articulation initialized. Diagnostic: anchored flange trajectories; torso/grippers held.", flush=True)
+    print("QX articulation initialized. Diagnostic: anchored torso + flange trajectories; grippers held.", flush=True)
     print(f"Runtime arm joints: {[robot.joint_names[i] for i in arms.ids]}", flush=True)
+    print(f"Runtime torso joints: {[robot.joint_names[i] for i in arms.torso_ids]}", flush=True)
     print(f"Motion output: {output}", flush=True)
     info = startup.info
-    info.update(joint_names=list(robot.joint_names), body_names=list(robot.body_names), arm_joint_ids=arms.ids)
+    info.update(
+        joint_names=list(robot.joint_names),
+        body_names=list(robot.body_names),
+        arm_joint_ids=arms.ids,
+        torso_joint_ids=arms.torso_ids,
+        controlled_joint_ids=arms.controlled_ids,
+    )
     warmup_steps = warmup_live_cameras(sim, robot, arms, cameras, startup) if cameras else 0
     startup.finish()
     if args.motion_camera_check_only:
@@ -545,13 +604,18 @@ def _run_motion(args, app, output, startup):
             "robot_pos": list(args.robot_pos),
             "robot_rot_deg": list(args.robot_rot_deg),
             "sdk_tcp_calibrated": False,
-            "torso_grippers": "held",
+            "torso_control": "anchored_pose_ik_action_14_20",
+            "torso_actuator_gains": "from_usd",
+            "grippers": "held",
             "seed": args.seed,
             "physics_hz": 120,
             "control_hz": 30,
             "joint_names": list(robot.joint_names),
             "body_names": list(robot.body_names),
             "arm_joint_ids": arms.ids,
+            "torso_joint_ids": arms.torso_ids,
+            "controlled_joint_ids": arms.controlled_ids,
+            "arm_reference_frame": "moving_usd_shoulder_joint_parent",
             "motion_gain": args.motion_gain,
             "motion_radius_m": args.motion_radius,
             "joint_step_rad": args.motion_joint_step,
@@ -654,6 +718,7 @@ def _run_motion(args, app, output, startup):
         for _ in range(24):
             tick()
         arms.max_motion = 0.0
+        arms.max_torso_motion = 0.0
         arms.initial = robot.data.joint_pos.clone()
         policy_start = arms.initial.clone()
         for chunk_index in range(args.motion_chunks):
@@ -693,7 +758,7 @@ def _run_motion(args, app, output, startup):
                 )
                 + "\n"
             )
-            print(f"Received [16,20] in {elapsed:.2f}s; applying model trajectory to both arms.", flush=True)
+            print(f"Received [16,20] in {elapsed:.2f}s; applying model trajectory to torso and both arms.", flush=True)
             arms.begin_chunk(actions)
             for action in actions:
                 if not app.is_running():
@@ -719,17 +784,29 @@ def _run_motion(args, app, output, startup):
                 f"Measured arm joint displacement: {arms.max_motion:.6f} rad; command {arms.max_command:.6f} rad",
                 flush=True,
             )
+            print(
+                f"Measured torso joint displacement: {arms.max_torso_motion:.6f} rad; "
+                f"command {arms.max_torso_command:.6f} rad",
+                flush=True,
+            )
         until = time.monotonic() + args.motion_hold_seconds
         while app.is_running() and time.monotonic() < until:
             tick()
         policy_varies = arms.max_policy_translation > 1e-6 or arms.max_policy_rotation > 1e-6
         status = (
             "motion_observed"
-            if policy_varies and arms.max_command > 1e-4 and arms.max_motion > 1e-4
+            if policy_varies
+            and (
+                (arms.max_command > 1e-4 and arms.max_motion > 1e-4)
+                or (arms.max_torso_command > 1e-4 and arms.max_torso_motion > 1e-4)
+            )
             else "no_motion_observed"
         )
         info["final_arm_displacement_rad"] = (
             (robot.data.joint_pos[:, arms.ids] - policy_start[:, arms.ids])[0].detach().cpu().tolist()
+        )
+        info["final_torso_displacement_rad"] = (
+            (robot.data.joint_pos[:, arms.torso_ids] - policy_start[:, arms.torso_ids])[0].detach().cpu().tolist()
         )
     except KeyboardInterrupt:
         status = "interrupted"
@@ -751,6 +828,8 @@ def _run_motion(args, app, output, startup):
                 "physics_steps": physics_steps,
                 "max_measured_arm_displacement_rad": arms.max_motion,
                 "max_commanded_arm_displacement_rad": arms.max_command,
+                "max_measured_torso_displacement_rad": arms.max_torso_motion,
+                "max_commanded_torso_displacement_rad": arms.max_torso_command,
                 "max_policy_chunk_translation_m": arms.max_policy_translation,
                 "max_policy_chunk_rotation_rad": arms.max_policy_rotation,
             }

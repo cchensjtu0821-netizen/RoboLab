@@ -105,6 +105,8 @@ def test_camera_only_saves_real_buffer_pixels_without_model_calls(tmp_path, monk
 
     class Arms:
         ids = [0, 1]
+        torso_ids = []
+        controlled_ids = ids
 
         def __init__(self, *args):
             pass
