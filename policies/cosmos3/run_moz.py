@@ -259,6 +259,13 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.motion_smoke:
         args.robot_usd, args.scene_usd = early.robot_usd, early.scene_usd
+        if args.motion_keep_open is None:
+            # AppLauncher consumes/removes livestream from the Namespace.
+            # Resolve the inspection lifetime before constructing it.
+            livestream = getattr(args, "livestream", -1)
+            if livestream < 0:
+                livestream = int(os.environ.get("LIVESTREAM", "0"))
+            args.motion_keep_open = livestream > 0
     args.enable_cameras = True
     app = AppLauncher(args).app
     try:

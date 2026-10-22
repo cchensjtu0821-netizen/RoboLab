@@ -119,6 +119,10 @@ bash scripts/run_cosmos3_moz.sh \
 
 默认物理步长 1/120 秒，4 个物理步执行一次控制；每个关节目标相对当前角度最多改变 0.02 rad，法兰目标距启动位置最多 0.10 m，单 chunk 旋转变化最多 0.25 rad，并按实际关节限位截断。`--motion-gain` 只缩放预测平移，`--motion-radius` 和 `--motion-joint-step` 可调整上述限幅。模型请求在工作线程中执行，等待推理时仍步进仿真并保持关节目标。30 Hz 是仿真控制配置，不是模型吞吐测量。
 
+开启 WebRTC 时，运动结束并完成 `--motion-hold-seconds` 的有限保持后，默认保存结果、暂停物理仿真、继续刷新 Kit/UI/串流，直到按 Ctrl+C 或关闭应用。终端显示 `Motion finished; physics paused, WebRTC/viewport stays open` 后仍可观察场景，不会再自动开始下一轮模型动作。可显式使用 `--motion-keep-open`；自动化无人值守运行用 `--motion-exit-on-complete` 恢复完成后退出。关闭串流时默认仍自动退出。检查视口期间不增加已保存的控制步数或改变运动结果。
+
+先点击客户端里的 3D 视口让它获得输入焦点，再使用视口导航调整相机；确保只连接一个客户端、查看默认透视相机而非固定的策略相机。底盘固定和关节PD保持会阻止直接拖动机器人本体，这与相机导航不同。控制代码只在启动时设置一次相机，不会每帧重置视角。若推理/运动期间就无法导航，或新版本保持刷新后仍出现 `nvstPushStreamData timeout`，需另查 WebRTC 客户端输入、连接状态和串流日志，不能仅凭这一条错误确定根因。此前版本在输出 `QX motion result` 后立即关闭应用，可能表现为客户端停在最后一帧；保持视口修复不代表已完成真实串流验证。
+
 终端会依次显示 `QX articulation initialized`、`Received [16,20]`、`Measured arm joint displacement`。结果保存在 `output/cosmos3_moz_motion/<时间戳>/`（可用 `--motion-output` 指定不存在的目录）：
 
 - `chunk_*.json`：实际输入 state/prompt、原始 `[16,20]` 预测、生成 seed、请求耗时。

@@ -41,8 +41,39 @@ def add_motion_args(parser):
     parser.add_argument(
         "--motion-hold-seconds", type=float, default=10.0, help="Hold final pose for WebRTC inspection."
     )
+    inspection = parser.add_mutually_exclusive_group()
+    inspection.add_argument(
+        "--motion-keep-open",
+        dest="motion_keep_open",
+        action="store_true",
+        help="Keep rendering the paused scene after motion until Ctrl+C; default when livestreaming.",
+    )
+    inspection.add_argument(
+        "--motion-exit-on-complete",
+        dest="motion_keep_open",
+        action="store_false",
+        help="Close Isaac Sim after motion and the finite hold, including when livestreaming.",
+    )
+    parser.set_defaults(motion_keep_open=None)
     parser.add_argument("--motion-instruction", default="Pick up the banana and put it in the bowl.")
     parser.add_argument("--motion-output", type=Path, default=None)
+
+
+def inspect_completed_motion(sim, app):
+    """Pause physics while continuing Kit/UI/stream updates, without moving the camera."""
+    sim.pause()
+    print(
+        "Motion finished; physics paused, WebRTC/viewport stays open. "
+        "Click inside the viewport to navigate; press Ctrl+C in this terminal to close Isaac Sim.",
+        flush=True,
+    )
+    try:
+        while app.is_running():
+            before = time.monotonic()
+            sim.render()
+            time.sleep(max(0, 1 / 60 - (time.monotonic() - before)))
+    except KeyboardInterrupt:
+        pass
 
 
 def validate_motion_args(args):
@@ -281,6 +312,7 @@ def run_motion(args, app):
     output = args.motion_output or ROOT / "output/cosmos3_moz_motion" / datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     output.mkdir(parents=True, exist_ok=False)
     sim = sim_utils.SimulationContext(sim_utils.SimulationCfg(dt=1 / 120, render_interval=4, device=args.device))
+    keep_open = bool(args.motion_keep_open)
     sim.set_camera_view((2.4, 2.3, 1.8), (0, 0, 0.65))
     stage = compose_scene(args)
     robot = Articulation(
@@ -354,6 +386,7 @@ def run_motion(args, app):
         "motion_radius_m": args.motion_radius,
         "joint_step_rad": args.motion_joint_step,
         "requested_chunks": args.motion_chunks,
+        "keep_viewport_open_after_motion": keep_open,
         "gripper_state_in_live_mode": "zero_placeholder_not_measured",
         "fixed_base": True,
         "gravity_disabled_on_robot": True,
@@ -560,3 +593,5 @@ def run_motion(args, app):
         raise RuntimeError(
             f"Motion diagnostic did not confirm motion: {status}; inspect motion_summary.json and control.jsonl"
         )
+    if keep_open and app.is_running():
+        inspect_completed_motion(sim, app)

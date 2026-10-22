@@ -26,7 +26,7 @@ from policies.cosmos3.motion_math import (
     relative_pose,
     rotvec_from_quat,
 )
-from policies.cosmos3.motion_qx import QxArms, add_motion_args, validate_motion_args
+from policies.cosmos3.motion_qx import QxArms, add_motion_args, inspect_completed_motion, validate_motion_args
 
 
 @pytest.mark.parametrize("angle", [0.0, 1e-9, 0.5, math.pi - 1e-6, -math.pi + 1e-6])
@@ -198,11 +198,25 @@ def test_motion_preflight_fails_before_isaac_import(tmp_path):
     assert "No module named 'isaaclab'" not in result.stderr
 
 
-def test_motion_dispatch_preserves_preflight_paths_and_closes_app(monkeypatch, tmp_path):
+@pytest.mark.parametrize(
+    "stream_args,stream_env,keep_open",
+    [
+        ([], "0", False),
+        (["--livestream", "2"], "0", True),
+        ([], "2", True),
+        (["--livestream", "0"], "2", False),
+        (["--livestream", "2", "--motion-exit-on-complete"], "0", False),
+        (["--livestream", "0", "--motion-keep-open"], "0", True),
+    ],
+)
+def test_motion_dispatch_preserves_preflight_paths_and_closes_app(
+    monkeypatch, tmp_path, stream_args, stream_env, keep_open
+):
     from policies.cosmos3 import motion_qx
     from policies.cosmos3.run_moz import main
 
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("LIVESTREAM", stream_env)
     for name in ("robot.usd", "scene.usda"):
         (tmp_path / name).write_text("#usda 1.0\n")
     closed = []
@@ -212,8 +226,10 @@ def test_motion_dispatch_preserves_preflight_paths_and_closes_app(monkeypatch, t
         @staticmethod
         def add_app_launcher_args(parser):
             parser.add_argument("--device", default="cpu")
+            parser.add_argument("--livestream", type=int, default=-1)
 
         def __init__(self, args):
+            vars(args).pop("livestream")
             self.app = SimpleNamespace(close=lambda: closed.append(True))
 
     module = types.ModuleType("isaaclab.app")
@@ -222,8 +238,31 @@ def test_motion_dispatch_preserves_preflight_paths_and_closes_app(monkeypatch, t
     monkeypatch.setitem(sys.modules, "isaaclab.app", module)
     monkeypatch.setitem(sys.modules, "cv2", types.ModuleType("cv2"))
     monkeypatch.setattr(motion_qx, "run_motion", lambda args, app: observed.append(args))
-    main(["--motion-smoke", "--robot-usd", "robot.usd", "--scene-usd", "scene.usda"])
+    main(["--motion-smoke", "--robot-usd", "robot.usd", "--scene-usd", "scene.usda", *stream_args])
     assert observed[0].robot_usd == tmp_path / "robot.usd"
     assert observed[0].scene_usd == tmp_path / "scene.usda"
     assert observed[0].enable_cameras
+    assert observed[0].motion_keep_open is keep_open
     assert closed == [True]
+
+
+def test_completed_motion_pauses_physics_but_keeps_rendering(monkeypatch):
+    events = []
+    frames = iter([True, True, True, False])
+    sim = SimpleNamespace(pause=lambda: events.append("pause"), render=lambda: events.append("render"))
+    app = SimpleNamespace(is_running=lambda: next(frames))
+    monkeypatch.setattr("policies.cosmos3.motion_qx.time.sleep", lambda delay: None)
+    inspect_completed_motion(sim, app)
+    assert events == ["pause", "render", "render", "render"]
+
+
+def test_completed_motion_ctrl_c_does_not_turn_success_into_failure(monkeypatch):
+    events = []
+
+    def render():
+        events.append("render")
+        raise KeyboardInterrupt
+
+    sim = SimpleNamespace(pause=lambda: events.append("pause"), render=render)
+    inspect_completed_motion(sim, SimpleNamespace(is_running=lambda: True))
+    assert events == ["pause", "render"]
