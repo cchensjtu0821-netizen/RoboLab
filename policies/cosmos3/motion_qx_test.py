@@ -251,6 +251,114 @@ def test_invalid_torso_chain_fails_instead_of_silently_ignoring_policy(qx_contro
         QxArms(controller.robot, stage, controller.args)
 
 
+@pytest.mark.parametrize("kind", ["state", "action"])
+@pytest.mark.parametrize("record_video", [False, True])
+def test_recording_replay_uses_native_timing_initial_state_and_no_model(
+    qx_controller, tmp_path, monkeypatch, kind, record_video
+):
+    import json
+
+    from policies.cosmos3.motion_startup import StartupReport
+    from policies.cosmos3.recording import JOINT_NAMES
+    from policies.cosmos3.replay_qx import replay_recording
+
+    controller, _ = qx_controller
+    robot = controller.robot
+    bundle = {
+        "format": "qx_recording_v1",
+        "fps": 30,
+        "joint_units": "rad",
+        "joint_names": JOINT_NAMES,
+        "source": {"episode_index": 4},
+        "videos": [],
+        "frames": [],
+    }
+    for index in range(3):
+        action = [0.0] * 20
+        action[0], action[16] = index * 0.03, index * 0.03
+        bundle["frames"].append(
+            {
+                "frame_index": index + 10,
+                "timestamp": index / 30,
+                "state20": [0.0] * 20,
+                "action20": action,
+                "joint_position_rad": [0.1 + index * 0.1] * 20,
+            }
+        )
+    source = tmp_path / "recording.json"
+    source.write_text(json.dumps(bundle))
+    output = tmp_path / "run"
+    output.mkdir()
+    targets, steps = [], []
+    robot.write_joint_state_to_sim = lambda q, v: robot.data.joint_pos.copy_(q)
+    robot.set_joint_position_target = lambda q: targets.append(q.clone())
+    robot.write_data_to_sim = lambda: None
+    robot.update = lambda dt: None
+
+    def step():
+        steps.append(True)
+        robot.data.joint_pos.copy_(targets[-1])
+
+    monkeypatch.setattr("policies.cosmos3.replay_qx.time.sleep", lambda delay: None)
+    encoded, closed = [], []
+    if record_video:
+
+        class Writer:
+            def __init__(self, *args):
+                pass
+
+            def isOpened(self):
+                return True
+
+            def write(self, image):
+                encoded.append(image.copy())
+
+            def release(self):
+                closed.append(True)
+
+        cv2 = types.ModuleType("cv2")
+        cv2.VideoWriter, cv2.VideoWriter_fourcc = Writer, lambda *args: 1
+        cv2.COLOR_RGB2BGR = 1
+        cv2.cvtColor = lambda image, code: image[:, :, ::-1].copy()
+        monkeypatch.setitem(sys.modules, "cv2", cv2)
+        camera = SimpleNamespace(set_world_poses_from_view=lambda *args: None, update=lambda dt: None)
+        monkeypatch.setattr("policies.cosmos3.motion_qx.create_live_cameras", lambda *args: {"cam_high": camera})
+        monkeypatch.setattr("policies.cosmos3.motion_qx.warmup_live_cameras", lambda *args: 24)
+        monkeypatch.setattr(
+            "policies.cosmos3.motion_qx.camera_images",
+            lambda cameras: {"cam_high": np.full((2, 2, 3), [11, 22, 33], dtype=np.uint8)},
+        )
+    args = SimpleNamespace(
+        motion_replay=source, motion_replay_kind=kind, motion_replay_no_video=not record_video, motion_keep_open=False
+    )
+    with StartupReport(output, {}, stack_seconds=0) as startup:
+        replay_recording(
+            args,
+            SimpleNamespace(is_running=lambda: True),
+            SimpleNamespace(step=step, get_initial_stage=lambda: None),
+            robot,
+            controller,
+            startup,
+        )
+    summary = json.loads((output / "motion_summary.json").read_text())
+    assert summary["status"] == "replay_completed"
+    assert summary["completed_frames"] == 3
+    assert summary["model_requested"] is False
+    assert len(steps) == 24 + 3 * 4
+    if record_video:
+        assert len(encoded) == 3 and closed == [True]
+        np.testing.assert_array_equal(encoded[0][0, 0], [33, 22, 11])
+        assert summary["simulation_video"] == "simulation.mp4"
+    trace = [json.loads(line) for line in (output / "replay_control.jsonl").read_text().splitlines()]
+    assert [row["source_frame_index"] for row in trace] == [10, 11, 12]
+    if kind == "state":
+        assert summary["metrics"]["joint_reference_max_abs_rad"] < 1e-6
+        assert trace[-1]["joint_target_rad"] == pytest.approx([0.3] * 20)
+    else:
+        assert summary["mode"] == "recorded_cartesian_action_diagnostic"
+        assert trace[-1]["joint_target_rad"] != pytest.approx([0.3] * 20)
+
+
 def test_asset_preflight_rejects_lfs_and_invalid_limits(tmp_path):
     parser = argparse.ArgumentParser()
     add_motion_args(parser)

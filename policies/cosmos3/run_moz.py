@@ -236,6 +236,8 @@ def register_robot(args):
 def main(argv=None):
     parser = build_parser()
     early, unknown = parser.parse_known_args(argv)
+    if early.motion_replay and not early.motion_smoke:
+        parser.error("--motion-replay requires --motion-smoke")
     if early.probe_ssh and not early.probe_sample:
         parser.error("--probe-ssh requires --probe-sample")
     if early.probe_sample and not early.motion_smoke:

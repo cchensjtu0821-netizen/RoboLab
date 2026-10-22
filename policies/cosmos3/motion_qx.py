@@ -67,6 +67,18 @@ def add_motion_args(parser):
     parser.add_argument("--motion-instruction", default="Pick up the banana and put it in the bowl.")
     parser.add_argument("--motion-output", type=Path, default=None)
     parser.add_argument(
+        "--motion-replay", type=Path, help="Replay recording.json without a model or SSH sample request."
+    )
+    parser.add_argument(
+        "--motion-replay-kind",
+        choices=("state", "action"),
+        default="state",
+        help="state: measured joint trajectory baseline; action: uncalibrated anchored Cartesian IK diagnostic.",
+    )
+    parser.add_argument(
+        "--motion-replay-no-video", action="store_true", help="Skip the replay camera/MP4, retain viewport."
+    )
+    parser.add_argument(
         "--motion-camera-backend",
         choices=("tiled", "standard"),
         default="tiled",
@@ -121,6 +133,12 @@ def validate_motion_args(args):
         raise ValueError("--motion-startup-stack-seconds must be finite and nonnegative")
     if args.motion_camera_check_only and args.probe_sample:
         raise ValueError("--motion-camera-check-only requires live inputs; remove --probe-sample")
+    if args.motion_replay:
+        if args.probe_sample or args.probe_ssh or args.motion_camera_check_only:
+            raise ValueError("--motion-replay cannot be combined with probe/sample/camera-check modes")
+        from policies.cosmos3.recording import load_bundle
+
+        load_bundle(args.motion_replay)
     if args.motion_camera_set != "all" and not args.motion_camera_check_only:
         raise ValueError("--motion-camera-set subsets require --motion-camera-check-only; inference needs three views")
     for name in ("motion_gain", "motion_radius", "motion_joint_step"):
@@ -561,6 +579,10 @@ def _run_motion(args, app, output, startup):
     robot.update(0)
     startup.phase("articulation.resolve_runtime_dofs")
     arms = QxArms(robot, stage, args)
+    if args.motion_replay:
+        from policies.cosmos3.replay_qx import replay_recording
+
+        return replay_recording(args, app, sim, robot, arms, startup)
     cameras = create_live_cameras(args, stage, startup) if not args.probe_sample else {}
     if "cam_high" in cameras:
         startup.phase("camera.high.look_at")

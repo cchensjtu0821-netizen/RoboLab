@@ -154,7 +154,50 @@ summary保留原有14维`arm_joint_ids`与手臂位移指标，新增6维`torso_
 
 控制 API 对齐 [Isaac Lab 2.2 的 IK 示例](https://github.com/isaac-sim/IsaacLab/blob/v2.2.0/scripts/tutorials/05_controllers/run_diff_ik.py)和[固定底盘的 schema 实现](https://github.com/isaac-sim/IsaacLab/blob/v2.2.0/source/isaaclab/isaaclab/sim/schemas/schemas.py)。保持原有 Isaac Sim 5.0 / Isaac Lab 2.2 环境，不要求升级或重新训练。
 
-## 4. 完整 QX 任务注册与 WebRTC
+## 4. 连续真实采集序列与实拍视频对照
+
+`--probe-sample`重复使用单个观测，并不是连续真实轨迹回放。这里新增独立记录导出及回放，不请求Cosmos、不使用模型预测，也不受`--motion-chunks`限制。
+
+先在**能读取训练数据的机器**运行独立的`policies/cosmos3/recording.py`文件（可只复制这一文件过去），使用已有带NumPy/PyArrow的Python环境：
+
+```bash
+python /实际代码路径/policies/cosmos3/recording.py \
+  --root /srv/data2/20260407_merged_123 \
+  --output /tmp/moz_reference_30s \
+  --duration 30 --joint-units rad --trim-videos
+```
+
+工具根据LeRobot-v3的episode metadata选择足够长的一条episode，优先最长，长度相同取较小episode_index；默认在该episode内选关节运动总量最大的连续30秒窗口（900帧）。可用`--episode-id N`指定episode、`--start-seconds S`指定起点、`--duration 60`选60秒。不会拼接不同episode或抽样16帧窗口；检查frame_index和timestamp连续，原始state20、action20、左右7+7及腰部6个关节状态完整保留，不进行归一化或cmd-state差分。若选中episode无运动、字段缺失、时间不连续、视频缺失或offset不明确会报错。
+
+`--joint-units rad`是对原关节字段单位的显式声明，不会把度偷偷转换为弧度或猜测符号。字段joint0..N按已知左/右/LegWaist顺序映射，仍需同源机器人版本与关节约定。以往数据检查指出cmd_joint可能由state补齐，因此这里不把cmd_joint当作独立真实命令。LeRobot-v3一个MP4可能包含多条episode，导出器使用metadata中视频的chunk/file/from_timestamp/to_timestamp，按同一窗口裁剪；`--trim-videos`需要现有ffmpeg/libx264，生成`real_view_*.mp4`。不带该参数仅保存原视频路径/offset，不复制视频。Parquet histogram兼容报错可使用已有DuckDB作为fallback，不自动安装或更换环境。
+
+将导出的整个目录复制到RoboLab机器，例如`output/moz_reference_30s/`。**先回放实测关节状态，作为运动学基准：**
+
+```bash
+bash scripts/run_cosmos3_moz.sh --motion-smoke \
+  --motion-replay output/moz_reference_30s/recording.json \
+  --motion-replay-kind state --motion-keep-open \
+  --motion-output output/moz_replay_state_30s
+```
+
+它首先恢复记录首帧双臂/腰部关节状态，在初始姿态预热后按30Hz连续给出原始关节位置目标，每帧4次1/120s物理步；不是每帧直接传送机器人。不应用motion-joint-step/radius诊断缩放，不静默裁剪原轨迹；若记录超出运行时soft_joint_pos_limits会停止并要求核对版本/单位/关节方向。首帧恢复和预热不计入视频时间。默认额外创建high相机保存`simulation.mp4`；只需要WebRTC可加`--motion-replay-no-video`跳过相机/编码。
+
+**再用同一段原始Cartesian action检查当前IK诊断映射：**
+
+```bash
+bash scripts/run_cosmos3_moz.sh --motion-smoke \
+  --motion-replay output/moz_reference_30s/recording.json \
+  --motion-replay-kind action --motion-keep-open \
+  --motion-output output/moz_replay_action_30s
+```
+
+action模式使用整段一个锚点，不每16帧重新锚定，仍采用当前motion-radius/joint-step/旋转限幅以及尚未SDK/TCP标定的IK。因此它是**动作映射诊断**，不能声称准确复现原绝对Cartesian命令。若state回放一致而action回放明显不同，优先检查参考系、TCP、IK、冗余解和限幅；比较7自由度臂的关节误差时也要考虑相同末端可有不同关节解。两种回放均保持原始action20、state20作为参考，不把模型预测混入原始采集数据。
+
+结果包括`simulation.mp4`、`replay_control.jsonl`与`motion_summary.json`：逐帧记录源frame_index/timestamp、20个映射关节的目标/实测/原始状态，summary保存源episode、原始视频offset、输入SHA-256、关节顺序及对原关节状态的RMSE/max误差(rad)。仿真视频第k帧是对源第k帧目标步进4次后的实测画面，存在PD跟踪滞后；原视频与仿真可按相同帧号并排观察，不按机器运行墙钟配对。
+
+该比较首先检查双臂和腰部运动。当前未复现夹爪/头部/移动底盘，也未还原真实物体初始位姿、接触、光照和相机标定，不能据像素不一致判断控制错误或要求重现抓取结果。开发机无真实训练Parquet/视频与Isaac环境，导出和调度使用合成Parquet/CPU替身检查；实际episode选择、MP4编码及服务器回放需在数据/仿真机器运行确认。
+
+## 5. 完整 QX 任务注册与 WebRTC
 
 当前 `scripts/run_qx_banana.sh` 的 USD 加载和 WebRTC 显示已由用户确认成功。该预览脚本仍不执行控制；上一节的 `--motion-smoke` 提供独立运动联调。完整任务评测仍需要下述注册，不能直接拿 USD 路径替换 DROID。
 
