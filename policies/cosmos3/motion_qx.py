@@ -66,6 +66,29 @@ def add_motion_args(parser):
     parser.set_defaults(motion_keep_open=None)
     parser.add_argument("--motion-instruction", default="Pick up the banana and put it in the bowl.")
     parser.add_argument("--motion-output", type=Path, default=None)
+    parser.add_argument(
+        "--motion-camera-backend",
+        choices=("tiled", "standard"),
+        default="tiled",
+        help="Live RGB backend; tiled matches RoboLab's robot camera configs.",
+    )
+    parser.add_argument(
+        "--motion-camera-check-only",
+        action="store_true",
+        help="Initialize live cameras, save real RGB frames, and exit without contacting the policy.",
+    )
+    parser.add_argument(
+        "--motion-camera-set",
+        choices=("all", "high", "left-wrist", "right-wrist"),
+        default="all",
+        help="Select cameras for --motion-camera-check-only; policy inference requires all three.",
+    )
+    parser.add_argument(
+        "--motion-startup-stack-seconds",
+        type=float,
+        default=60.0,
+        help="Dump Python stacks to the output directory during slow initialization; 0 disables.",
+    )
 
 
 def inspect_completed_motion(sim, app):
@@ -94,6 +117,12 @@ def validate_motion_args(args):
         raise ValueError("--robot-pos must be finite")
     if not np.isfinite(args.robot_rot_deg).all():
         raise ValueError("--robot-rot-deg must be finite")
+    if not np.isfinite(args.motion_startup_stack_seconds) or args.motion_startup_stack_seconds < 0:
+        raise ValueError("--motion-startup-stack-seconds must be finite and nonnegative")
+    if args.motion_camera_check_only and args.probe_sample:
+        raise ValueError("--motion-camera-check-only requires live inputs; remove --probe-sample")
+    if args.motion_camera_set != "all" and not args.motion_camera_check_only:
+        raise ValueError("--motion-camera-set subsets require --motion-camera-check-only; inference needs three views")
     for name in ("motion_gain", "motion_radius", "motion_joint_step"):
         value = getattr(args, name)
         if not np.isfinite(value) or value <= 0:
@@ -116,7 +145,7 @@ def validate_motion_args(args):
                 raise ValueError(f"Asset is a Git LFS pointer: {path}; fetch the real asset first")
 
 
-def compose_scene(args):
+def compose_scene(args, phase=lambda name: None):
     import isaaclab.sim as sim_utils
     import omni.usd
     from pxr import Gf, Usd, UsdGeom, UsdPhysics
@@ -140,11 +169,14 @@ def compose_scene(args):
             raise ValueError(f"Cannot reference {path}")
         return prim
 
+    phase("scene.reference")
     reference("/World/scene", args.scene_usd)
     fixture = stage.GetPrimAtPath("/World/scene/franka_table")
     if fixture.IsValid():
         fixture.SetActive(False)
+    phase("robot.reference")
     robot = reference("/World/robot", args.robot_usd)
+    phase("robot.placement")
     placement = UsdGeom.XformCommonAPI(robot)
     if not placement.SetTranslate(Gf.Vec3d(*args.robot_pos)):
         raise ValueError("Cannot set QX root translation; check the robot root xform operations")
@@ -159,6 +191,7 @@ def compose_scene(args):
         raise ValueError(f"Expected one QX articulation root, found {[str(p.GetPath()) for p in roots]}")
     # Stage overrides only: source USD is never written. Fix the mobile base and
     # disable gravity/self-collision for this first actuator integration run.
+    phase("robot.physics_properties")
     sim_utils.modify_articulation_root_properties(
         str(roots[0].GetPath()),
         sim_utils.ArticulationRootPropertiesCfg(fix_root_link=True, enabled_self_collisions=False),
@@ -316,24 +349,120 @@ class QxArms:
         self.max_motion = max(self.max_motion, float((positions[:, self.ids] - self.initial[:, self.ids]).abs().max()))
 
 
+def create_live_cameras(args, stage, startup):
+    import isaaclab.sim as sim_utils
+    from isaaclab.sensors import Camera, CameraCfg, TiledCamera, TiledCameraCfg
+    from pxr import UsdGeom
+
+    specifications = (
+        ("high", "cam_high", "/World/MotionHighCamera"),
+        ("left-wrist", "cam_left_wrist", "/World/robot/Picker_USD_left/base_link/D405_left/camera_link/waist_camera"),
+        (
+            "right-wrist",
+            "cam_right_wrist",
+            "/World/robot/Picker_USD_right/base_link/D405_right/camera_link/waist_camera",
+        ),
+    )
+    sensor_type, config_type = (
+        (TiledCamera, TiledCameraCfg) if args.motion_camera_backend == "tiled" else (Camera, CameraCfg)
+    )
+    cameras = {}
+    for selector, name, path in specifications:
+        if args.motion_camera_set not in ("all", selector):
+            continue
+        startup.phase(f"camera.create.{name}.{args.motion_camera_backend}")
+        if selector != "high":
+            prim = stage.GetPrimAtPath(path)
+            if not prim.IsValid() or not prim.IsA(UsdGeom.Camera):
+                raise ValueError(f"Missing USD Camera prim: {path}")
+        cameras[name] = sensor_type(
+            config_type(
+                prim_path=path,
+                height=256,
+                width=256,
+                data_types=["rgb"],
+                spawn=sim_utils.PinholeCameraCfg() if selector == "high" else None,
+            )
+        )
+        startup.phase(f"camera.created.{name}")
+    startup.info["camera_paths"] = {name: camera.cfg.prim_path for name, camera in cameras.items()}
+    return cameras
+
+
+def camera_images(cameras):
+    from policies.cosmos3.client_moz import validate_rgb
+
+    return {
+        name: validate_rgb(camera.data.output["rgb"][0, ..., :3].detach().cpu().numpy().copy(), name)
+        for name, camera in cameras.items()
+    }
+
+
+def warmup_live_cameras(sim, robot, arms, cameras, startup, frames=24):
+    from PIL import Image
+
+    for frame in range(frames):
+        startup.phase(f"camera.warmup.render.{frame + 1}/{frames}")
+        arms.write()
+        sim.step(render=False)
+        robot.update(1 / 120)
+        sim.render()
+        for name, camera in cameras.items():
+            startup.phase(f"camera.warmup.update.{name}.{frame + 1}")
+            camera.update(1 / 120)
+    startup.phase("camera.first_rgb_read")
+    images = camera_images(cameras)
+    for name, image in images.items():
+        startup.phase(f"camera.save_first_rgb.{name}")
+        Image.fromarray(image).save(startup.output / f"{name}.png")
+    startup.info["camera_rgb_shapes"] = {name: list(image.shape) for name, image in images.items()}
+    startup.info["camera_warmup_physics_steps"] = frames
+    return frames
+
+
 def run_motion(args, app):
+    from policies.cosmos3.motion_startup import StartupReport
+
+    output = args.motion_output or ROOT / "output/cosmos3_moz_motion" / datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    output.mkdir(parents=True, exist_ok=False)
+    # Persist before importing/constructing native simulation or camera objects.
+    info = {
+        "mode": "camera_check" if args.motion_camera_check_only else "anchored_flange_motion_diagnostic",
+        "benchmark_evaluation": False,
+        "input_source": "dataset_sample" if args.probe_sample else "live_provisional_flange_state",
+        "robot_usd": str(args.robot_usd),
+        "scene_usd": str(args.scene_usd),
+        "device": args.device,
+        "robot_pos": list(args.robot_pos),
+        "robot_rot_deg": list(args.robot_rot_deg),
+        "camera_backend": args.motion_camera_backend if not args.probe_sample else None,
+        "camera_set": args.motion_camera_set if not args.probe_sample else None,
+        "initialization_completed": False,
+    }
+    print(f"Motion output: {output}", flush=True)
+    with StartupReport(output, info, args.motion_startup_stack_seconds) as startup:
+        return _run_motion(args, app, output, startup)
+
+
+def _run_motion(args, app, output, startup):
+    startup.phase("import_isaac_modules")
     import isaaclab.sim as sim_utils
     import torch
     from isaaclab.actuators import ImplicitActuatorCfg
     from isaaclab.assets import Articulation, ArticulationCfg
-    from isaaclab.sensors import Camera, CameraCfg
 
-    from policies.cosmos3.client_moz import CAMERAS, PROTOCOL, STORED_SPACE, validate_rgb, validate_state
+    from policies.cosmos3.client_moz import PROTOCOL, STORED_SPACE, validate_rgb, validate_state
     from policies.cosmos3.run_moz import load_probe_sample, make_client
 
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
-    output = args.motion_output or ROOT / "output/cosmos3_moz_motion" / datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-    output.mkdir(parents=True, exist_ok=False)
+    startup.phase("simulation_context.create")
     sim = sim_utils.SimulationContext(sim_utils.SimulationCfg(dt=1 / 120, render_interval=4, device=args.device))
     keep_open = bool(args.motion_keep_open)
+    startup.phase("viewport.initial_view")
     sim.set_camera_view((2.4, 2.3, 1.8), (0, 0, 0.65))
-    stage = compose_scene(args)
+    stage = compose_scene(args, startup.phase)
+    startup.phase("articulation.create")
     robot = Articulation(
         ArticulationCfg(
             prim_path="/World/robot",
@@ -350,76 +479,78 @@ def run_motion(args, app):
     )
     cameras = {}
     if not args.probe_sample:
-        paths = (
-            "/World/MotionHighCamera",
-            "/World/robot/Picker_USD_left/base_link/D405_left/camera_link/waist_camera",
-            "/World/robot/Picker_USD_right/base_link/D405_right/camera_link/waist_camera",
-        )
-        for name, path in zip(CAMERAS, paths, strict=True):
-            if name != "cam_high" and not stage.GetPrimAtPath(path).IsValid():
-                raise ValueError(f"Missing wrist camera {path}; use --probe-sample for the sample-driven diagnostic")
-            cameras[name] = Camera(
-                CameraCfg(
-                    prim_path=path,
-                    height=256,
-                    width=256,
-                    data_types=["rgb"],
-                    spawn=sim_utils.PinholeCameraCfg() if name == "cam_high" else None,
-                )
-            )
+        cameras = create_live_cameras(args, stage, startup)
+    startup.phase("simulation.reset.physics_and_camera_initialization")
     sim.reset()
+    startup.phase("simulation.reset.completed")
     if not robot.is_initialized:
         raise RuntimeError("QX articulation failed to initialize; inspect the preceding PhysX errors")
     if not robot.is_fixed_base:
         raise RuntimeError("Motion diagnostic requires a fixed QX base")
     robot.update(0)
+    startup.phase("articulation.resolve_runtime_dofs")
     arms = QxArms(robot, stage, args)
-    if cameras:
+    if "cam_high" in cameras:
+        startup.phase("camera.high.look_at")
         cameras["cam_high"].set_world_poses_from_view(
             torch.tensor([[1.8, 1.6, 1.8]], device=sim.device), torch.tensor([[0.0, 0.0, 0.6]], device=sim.device)
         )
     print("QX articulation initialized. Diagnostic: anchored flange trajectories; torso/grippers held.", flush=True)
     print(f"Runtime arm joints: {[robot.joint_names[i] for i in arms.ids]}", flush=True)
     print(f"Motion output: {output}", flush=True)
+    info = startup.info
+    info.update(joint_names=list(robot.joint_names), body_names=list(robot.body_names), arm_joint_ids=arms.ids)
+    warmup_steps = warmup_live_cameras(sim, robot, arms, cameras, startup) if cameras else 0
+    startup.finish()
+    if args.motion_camera_check_only:
+        info.update(status="camera_check_passed", completed_chunks=0, control_steps=0, physics_steps=warmup_steps)
+        startup.save()
+        print(
+            f"QX camera check passed: {list(cameras)}; first RGB frames saved in {output}; no model requested.",
+            flush=True,
+        )
+        return
     executor = ThreadPoolExecutor(max_workers=1)
     client = None
-    completed, control_steps, physics_steps = 0, 0, 0
+    completed, control_steps, physics_steps = 0, 0, warmup_steps
     status, failure = "interrupted", None
     trace = (output / "control.jsonl").open("w")
-    info = {
-        "mode": "anchored_flange_motion_diagnostic",
-        "benchmark_evaluation": False,
-        "input_source": "dataset_sample" if args.probe_sample else "live_provisional_flange_state",
-        "robot_usd": str(args.robot_usd),
-        "scene_usd": str(args.scene_usd),
-        "robot_pos": list(args.robot_pos),
-        "robot_rot_deg": list(args.robot_rot_deg),
-        "sdk_tcp_calibrated": False,
-        "torso_grippers": "held",
-        "seed": args.seed,
-        "physics_hz": 120,
-        "control_hz": 30,
-        "joint_names": list(robot.joint_names),
-        "body_names": list(robot.body_names),
-        "arm_joint_ids": arms.ids,
-        "motion_gain": args.motion_gain,
-        "motion_radius_m": args.motion_radius,
-        "joint_step_rad": args.motion_joint_step,
-        "requested_chunks": args.motion_chunks,
-        "keep_viewport_open_after_motion": keep_open,
-        "gripper_state_in_live_mode": "zero_placeholder_not_measured",
-        "fixed_base": True,
-        "gravity_disabled_on_robot": True,
-        "robot_self_collisions": False,
-        "device": args.device,
-        "versions": {},
-    }
+    info.update(
+        {
+            "mode": "anchored_flange_motion_diagnostic",
+            "benchmark_evaluation": False,
+            "input_source": "dataset_sample" if args.probe_sample else "live_provisional_flange_state",
+            "robot_usd": str(args.robot_usd),
+            "scene_usd": str(args.scene_usd),
+            "robot_pos": list(args.robot_pos),
+            "robot_rot_deg": list(args.robot_rot_deg),
+            "sdk_tcp_calibrated": False,
+            "torso_grippers": "held",
+            "seed": args.seed,
+            "physics_hz": 120,
+            "control_hz": 30,
+            "joint_names": list(robot.joint_names),
+            "body_names": list(robot.body_names),
+            "arm_joint_ids": arms.ids,
+            "motion_gain": args.motion_gain,
+            "motion_radius_m": args.motion_radius,
+            "joint_step_rad": args.motion_joint_step,
+            "requested_chunks": args.motion_chunks,
+            "keep_viewport_open_after_motion": keep_open,
+            "gripper_state_in_live_mode": "zero_placeholder_not_measured",
+            "fixed_base": True,
+            "gravity_disabled_on_robot": True,
+            "robot_self_collisions": False,
+            "device": args.device,
+            "versions": {},
+        }
+    )
     for package in ("isaacsim", "isaaclab", "torch"):
         try:
             info["versions"][package] = version(package)
         except PackageNotFoundError:
             info["versions"][package] = "unknown"
-    (output / "motion_summary.json").write_text(json.dumps({**info, "status": "initializing"}, indent=2) + "\n")
+    startup.save()
     if cameras:
         print(
             "Live input is provisional: USD shoulder/flange poses, zero gripper placeholders, uncalibrated high view.",
@@ -518,10 +649,7 @@ def run_motion(args, app):
                 request.update({"observation/state": state, "observation/image": composite, "prompt": sample["prompt"]})
             else:
                 request["observation/state"] = validate_state(arms.state())
-                request["observation/images"] = {
-                    name: camera.data.output["rgb"][0, ..., :3].detach().cpu().numpy().copy()
-                    for name, camera in cameras.items()
-                }
+                request["observation/images"] = camera_images(cameras)
             print(f"Requesting Cosmos3 chunk {chunk_index + 1}/{args.motion_chunks} ...", flush=True)
             started = time.monotonic()
             # A diagnostic reports the first transport failure directly. Avoid

@@ -117,6 +117,20 @@ bash scripts/run_cosmos3_moz.sh \
 
 实时模式使用 USD 中现有双腕 Camera，并新增一台 high 相机；姿态输入取 `left07/right07` 法兰相对 USD 首关节父坐标变换后的位姿，使用 rotvec。**尚未标定到 SDK 的 pose_base/TCP，夹爪状态临时填 0，high 视角也未对齐训练视角**，因此优先采用 sample 模式确认关节驱动，实时模式的模型效果不作为评测依据。相机路径或运行时 DOF 不匹配会明确报错，不回退到 DROID。
 
+实时输入额外经过相机传感器/Replicator初始化和首帧读取；sample模式跳过这些步骤。若sample能运行、实时模式在模型请求前停住，优先独立检查相机。`--motion-chunks 1`只减少初始化之后的模型请求次数，不能隔离相机初始化。
+
+```bash
+# 只启动物理与3台相机、保存RGB并退出；不连模型、不读SSH样本、不执行模型动作。
+bash scripts/run_cosmos3_moz.sh --motion-smoke \
+  --motion-camera-check-only --motion-camera-set all --motion-exit-on-complete
+```
+
+默认实时RGB后端使用仓库现有机器人同类的`TiledCamera`。可追加`--motion-camera-backend standard`对比原`Camera`路径；该切换不是已验证的GPU卡顿根因修复。独立检查可以把`--motion-camera-set`改为`high`、`left-wrist`或`right-wrist`逐台隔离，单台检查不会把缺失视角伪造后发送模型。只有不带camera-check-only、并使用all三路时才进入实时模型推理。
+
+输出目录创建后，程序立即保存`motion_summary.json`，每进入场景引用、相机创建、`simulation.reset.physics_and_camera_initialization`、warmup render、first_rgb_read等阶段都会更新`current_phase`、打印并追加`startup.jsonl`。Python初始化异常会写`startup_error.txt`；默认初始化持续60秒未完成时，定期把各Python线程堆栈写入`startup_stacks.txt`，不会强制终止原生GPU调用。可用`--motion-startup-stack-seconds 0`关闭该转储。初始化完成后自动停止转储，SSH等待或保持视口期间不会持续打印堆栈。
+
+相机检查成功会报告`camera_check_passed`，保存所选真实RGB缓冲的`cam_high.png`/`cam_left_wrist.png`/`cam_right_wrist.png`以及形状。先查看图像内容和相机朝向，再去掉camera-check-only参数运行原实时指令。该状态只证明相机输出通过格式检查，不证明训练视角/TCP标定正确。若仍停住，请保留目录的summary、startup.jsonl、startup_stacks.txt及终端末尾；精确原因需据实际最后阶段和线程堆栈确认。旧版本摘要写在reset/相机初始化后，空目录只能缩小范围，不能唯一定位卡在相机还是reset。
+
 两种模式采用同一诊断控制映射：每个 chunk 的首帧预测对齐当前实际法兰姿态，后续帧的位置变化、SO(3) 旋转变化驱动双臂；它不是生产 SDK 绝对 TCP 控制，也不是把 20 维当成关节角。躯干、轮子、头和夹爪保持初始关节目标，不执行对应预测通道。机器人重力、自碰撞在当前 stage 内关闭，底盘固定，不修改源 USD 或现有任务评测定义。
 
 默认物理步长 1/120 秒，4 个物理步执行一次控制；每个关节目标相对当前角度最多改变 0.02 rad，法兰目标距启动位置最多 0.10 m，单 chunk 旋转变化最多 0.25 rad，并按实际关节限位截断。`--motion-gain` 只缩放预测平移，`--motion-radius` 和 `--motion-joint-step` 可调整上述限幅。模型请求在工作线程中执行，等待推理时仍步进仿真并保持关节目标。30 Hz 是仿真控制配置，不是模型吞吐测量。
@@ -130,6 +144,7 @@ bash scripts/run_cosmos3_moz.sh \
 - `chunk_*.json`：实际输入 state/prompt、原始 `[16,20]` 预测、生成 seed、请求耗时。
 - `control.jsonl`：每个控制步的实际关节角和目标角，单位 rad，顺序见 summary。
 - `motion_summary.json`：模型 metadata、软件版本、输入来源、控制配置、实际关节映射、最大观测/目标位移、完成 chunk 数和运行状态。
+- `startup.jsonl` / `startup_stacks.txt` / `startup_error.txt`：初始化阶段、长时间初始化的线程堆栈（若触发）与Python初始化错误（若发生）。实时模式另保存首帧相机PNG供核对。
 
 只有预测轨迹有变化、控制目标发生变化且实际读回的臂关节位移超过 `1e-4` rad 才报告 `motion_observed`；没有动作会报错，不通过预设摆臂伪造模型运动。该状态仅是联调运动证据，不证明任务成功、模型质量或完整 20 维映射正确。开发环境仅完成 CPU 检查，真实 USD/PhysX/GPU/串流还需在用户服务器验证。
 
