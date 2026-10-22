@@ -349,6 +349,24 @@ class QxArms:
         self.max_motion = max(self.max_motion, float((positions[:, self.ids] - self.initial[:, self.ids]).abs().max()))
 
 
+def initialize_live_camera(camera, name, startup):
+    """Initialize a late-created Isaac Lab 2.2/2.3 sensor outside PLAY callbacks.
+
+    SensorBase has no public initialize method in these versions. Its normal
+    PLAY callback calls _initialize_impl and sets _is_initialized. Do the same
+    here, after physics is ready, so rendering resources are not created from
+    inside SimulationContext.reset's timeline callback. Set the flag only after
+    initialization succeeds; future PLAY callbacks then avoid duplicate setup.
+    """
+    startup.phase(f"camera.initialize.{name}")
+    if not camera.is_initialized:
+        camera._initialize_impl()
+        camera._is_initialized = True
+    startup.phase(f"camera.reset.{name}")
+    camera.reset()
+    startup.phase(f"camera.initialized.{name}")
+
+
 def create_live_cameras(args, stage, startup):
     import isaaclab.sim as sim_utils
     from isaaclab.sensors import Camera, CameraCfg, TiledCamera, TiledCameraCfg
@@ -385,6 +403,7 @@ def create_live_cameras(args, stage, startup):
             )
         )
         startup.phase(f"camera.created.{name}")
+        initialize_live_camera(cameras[name], name, startup)
     startup.info["camera_paths"] = {name: camera.cfg.prim_path for name, camera in cameras.items()}
     return cameras
 
@@ -437,6 +456,7 @@ def run_motion(args, app):
         "robot_rot_deg": list(args.robot_rot_deg),
         "camera_backend": args.motion_camera_backend if not args.probe_sample else None,
         "camera_set": args.motion_camera_set if not args.probe_sample else None,
+        "camera_initialization": "sequential_after_physics_reset" if not args.probe_sample else None,
         "initialization_completed": False,
     }
     print(f"Motion output: {output}", flush=True)
@@ -477,10 +497,9 @@ def _run_motion(args, app, output, startup):
             },
         )
     )
-    cameras = {}
-    if not args.probe_sample:
-        cameras = create_live_cameras(args, stage, startup)
-    startup.phase("simulation.reset.physics_and_camera_initialization")
+    # Match the successful sample path first. Do not subscribe camera PLAY
+    # callbacks or create render products until physical handles are ready.
+    startup.phase("simulation.reset.physics_only")
     sim.reset()
     startup.phase("simulation.reset.completed")
     if not robot.is_initialized:
@@ -490,6 +509,7 @@ def _run_motion(args, app, output, startup):
     robot.update(0)
     startup.phase("articulation.resolve_runtime_dofs")
     arms = QxArms(robot, stage, args)
+    cameras = create_live_cameras(args, stage, startup) if not args.probe_sample else {}
     if "cam_high" in cameras:
         startup.phase("camera.high.look_at")
         cameras["cam_high"].set_world_poses_from_view(

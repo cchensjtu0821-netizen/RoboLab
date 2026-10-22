@@ -68,9 +68,23 @@ def test_camera_only_saves_real_buffer_pixels_without_model_calls(tmp_path, monk
 
     class Sensor:
         def __init__(self, cfg):
+            assert "reset" in events, "Sensors must be constructed after the physics-only reset"
             self.cfg = cfg
+            self._is_initialized = False
             sensors.append(self)
             self.data = SimpleNamespace(output={"rgb": torch.full((1, 256, 256, 4), 23, dtype=torch.uint8)})
+
+        @property
+        def is_initialized(self):
+            return self._is_initialized
+
+        def _initialize_impl(self):
+            assert "reset" in events
+            events.append("camera_initialize")
+
+        def reset(self):
+            assert self.is_initialized
+            events.append("camera_reset")
 
         def update(self, dt):
             pass
@@ -139,6 +153,8 @@ def test_camera_only_saves_real_buffer_pixels_without_model_calls(tmp_path, monk
     assert summary["initialization_completed"] is True
     assert summary["completed_chunks"] == summary["control_steps"] == 0
     assert len(sensors) == len(summary["camera_rgb_shapes"]) == count
+    assert events.count("camera_initialize") == events.count("camera_reset") == count
+    assert events.index("reset") < events.index("camera_initialize")
     assert events.count("step") == events.count("render") == 24
     from PIL import Image
 
@@ -151,3 +167,33 @@ def test_camera_subset_cannot_silently_become_policy_input(tmp_path):
     args = run_moz.build_parser().parse_args(["--motion-smoke", "--motion-camera-set", "high"])
     with pytest.raises(ValueError, match="inference needs three views"):
         motion_qx.validate_motion_args(args)
+
+
+def test_camera_init_failure_is_not_marked_initialized(tmp_path):
+    class FailedCamera:
+        is_initialized = False
+        _is_initialized = False
+
+        def _initialize_impl(self):
+            raise RuntimeError("render product failed")
+
+        def reset(self):
+            raise AssertionError("Failed camera must not be reset")
+
+    camera = FailedCamera()
+    with pytest.raises(RuntimeError, match="render product failed"):
+        with StartupReport(tmp_path, {}, stack_seconds=0) as startup:
+            motion_qx.initialize_live_camera(camera, "cam_left_wrist", startup)
+    assert camera._is_initialized is False
+    summary = json.loads((tmp_path / "motion_summary.json").read_text())
+    assert summary["status"] == "failed"
+    assert summary["current_phase"] == "camera.initialize.cam_left_wrist"
+
+
+def test_camera_already_initialized_is_not_initialized_twice(tmp_path):
+    calls = []
+    camera = SimpleNamespace(is_initialized=True, reset=lambda: calls.append("reset"))
+    with StartupReport(tmp_path, {}, stack_seconds=0) as startup:
+        motion_qx.initialize_live_camera(camera, "cam_high", startup)
+        startup.finish()
+    assert calls == ["reset"]

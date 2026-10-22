@@ -127,7 +127,9 @@ bash scripts/run_cosmos3_moz.sh --motion-smoke \
 
 默认实时RGB后端使用仓库现有机器人同类的`TiledCamera`。可追加`--motion-camera-backend standard`对比原`Camera`路径；该切换不是已验证的GPU卡顿根因修复。独立检查可以把`--motion-camera-set`改为`high`、`left-wrist`或`right-wrist`逐台隔离，单台检查不会把缺失视角伪造后发送模型。只有不带camera-check-only、并使用all三路时才进入实时模型推理。
 
-输出目录创建后，程序立即保存`motion_summary.json`，每进入场景引用、相机创建、`simulation.reset.physics_and_camera_initialization`、warmup render、first_rgb_read等阶段都会更新`current_phase`、打印并追加`startup.jsonl`。Python初始化异常会写`startup_error.txt`；默认初始化持续60秒未完成时，定期把各Python线程堆栈写入`startup_stacks.txt`，不会强制终止原生GPU调用。可用`--motion-startup-stack-seconds 0`关闭该转储。初始化完成后自动停止转储，SSH等待或保持视口期间不会持续打印堆栈。
+初始化先执行不含相机sensor的`simulation.reset.physics_only`，建立实际机器人句柄，再逐台创建/初始化/重置相机。这样避免三台相机在`sim.reset()`的timeline PLAY回调内同时建立Replicator资源。阶段会细分为`camera.initialize.cam_high`、`camera.reset.cam_high`等；若某个原生渲染调用仍阻塞，summary/线程堆栈可以定位具体相机。Isaac Lab2.2/2.3没有sensor公共initialize接口，此处按其SensorBase内部初始化协议调用实现并在成功后标记，不再触发一次全场景reset来初始化相机。该顺序调整需要服务器复测，不能仅凭材质binding Warning认定其为卡住根因。
+
+输出目录创建后，程序立即保存`motion_summary.json`，每进入场景引用、`simulation.reset.physics_only`、相机创建/初始化、warmup render、first_rgb_read等阶段都会更新`current_phase`、打印并追加`startup.jsonl`。Python初始化异常会写`startup_error.txt`；默认初始化持续60秒未完成时，定期把各Python线程堆栈写入`startup_stacks.txt`，不会强制终止原生GPU调用。可用`--motion-startup-stack-seconds 0`关闭该转储。初始化完成后自动停止转储，SSH等待或保持视口期间不会持续打印堆栈。
 
 相机检查成功会报告`camera_check_passed`，保存所选真实RGB缓冲的`cam_high.png`/`cam_left_wrist.png`/`cam_right_wrist.png`以及形状。先查看图像内容和相机朝向，再去掉camera-check-only参数运行原实时指令。该状态只证明相机输出通过格式检查，不证明训练视角/TCP标定正确。若仍停住，请保留目录的summary、startup.jsonl、startup_stacks.txt及终端末尾；精确原因需据实际最后阶段和线程堆栈确认。旧版本摘要写在reset/相机初始化后，空目录只能缩小范围，不能唯一定位卡在相机还是reset。
 
