@@ -385,21 +385,41 @@ def run_motion(args, app):
             camera.update(1 / 120)
         time.sleep(max(0, 1 / 120 - (time.monotonic() - before)))
 
-    def wait_for(future):
-        last = time.monotonic()
+    def wait_for(future, phase):
+        started = last = time.monotonic()
+        info["current_phase"] = phase
+        (output / "motion_summary.json").write_text(
+            json.dumps({**info, "status": "waiting", "completed_chunks": completed}, indent=2) + "\n"
+        )
+        print(f"Starting {phase}.", flush=True)
         while app.is_running() and not future.done():
             tick()
             if time.monotonic() - last >= 10:
-                print("Waiting for Cosmos3; simulation/WebRTC continues, robot holding position.", flush=True)
+                elapsed = time.monotonic() - started
+                print(
+                    f"Waiting for {phase} ({elapsed:.0f}s); simulation/WebRTC continues, robot holding position.",
+                    flush=True,
+                )
                 last = time.monotonic()
         if not app.is_running():
             raise KeyboardInterrupt
-        return future.result()
+        result = future.result()
+        print(f"Completed {phase} in {time.monotonic() - started:.1f}s.", flush=True)
+        return result
 
     try:
         # Both sample SSH I/O and model requests run outside the rendering thread.
-        sample_bundle = wait_for(executor.submit(load_probe_sample, args)) if args.probe_sample else None
-        client = wait_for(executor.submit(make_client, args))
+        sample_bundle = None
+        if args.probe_sample:
+            if args.probe_ssh:
+                print(
+                    "Sample input uses SSH (normally port 22), separate from the policy WebSocket. "
+                    "If SSH asks for a password, type it in this terminal and press Enter; input is hidden.",
+                    flush=True,
+                )
+            phase = "SSH sample read/authentication" if args.probe_ssh else "local sample read"
+            sample_bundle = wait_for(executor.submit(load_probe_sample, args), phase)
+        client = wait_for(executor.submit(make_client, args), "Cosmos3 WebSocket connection/metadata")
         info["server"] = client.metadata
         if sample_bundle:
             source, sample, sample_state, vision, fingerprint = sample_bundle
@@ -453,7 +473,10 @@ def run_motion(args, app):
             started = time.monotonic()
             # A diagnostic reports the first transport failure directly. Avoid
             # reconnect/retry while shutting down a rendering session.
-            response = wait_for(executor.submit(client.client.request, request, timeout=args.request_timeout))
+            response = wait_for(
+                executor.submit(client.client.request, request, timeout=args.request_timeout),
+                f"Cosmos3 inference chunk {chunk_index + 1}/{args.motion_chunks}",
+            )
             actions = client._unpack_response(response)
             elapsed = time.monotonic() - started
             (output / f"chunk_{chunk_index:03d}.json").write_text(

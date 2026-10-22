@@ -101,6 +101,10 @@ bash scripts/run_cosmos3_moz.sh \
 
 将占位符换成原来成功 probe 的值。样本图像/state 在 Cosmos 服务器通过 SSH 读取，模型仍通过 WebSocket 真实推理，每次返回 `[16,20]` 后执行 16 个控制步。该模式重复使用样本输入，**是开环模型到执行器联调，不是实时观测闭环**；不需要先解决仿真相机或 SDK TCP 标定。
 
+SSH 读样本通常使用 **22** 端口，`--remote-port 8000` 只配置模型 WebSocket；两者独立。流程先读取样本，再建立模型连接，最后发起推理。密码提示出现时需在当前终端输入 SSH 密码并回车（密码不回显）。`Connection closed ... port 22` 表示样本 SSH 连接被关闭，应先单独验证 `ssh user@服务器` 能登录、远程 `python3` 和样本路径可读，不能据此认定8000模型服务断开。
+
+运动入口会明确打印等待阶段：`SSH sample read/authentication`、`Cosmos3 WebSocket connection/metadata`、`Cosmos3 inference chunk ...`，并显示已等待秒数；`motion_summary.json` 的 `current_phase` 同时记录当前阶段。SSH 等待阶段还没有发送模型推理请求。等待期间继续渲染并保持机器人姿态。
+
 不带 sample 参数则使用仿真实时图像与临时状态反馈：
 
 ```bash
