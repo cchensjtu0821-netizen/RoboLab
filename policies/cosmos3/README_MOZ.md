@@ -78,9 +78,56 @@ bash scripts/run_cosmos3_moz.sh \
 
 probe 核对服务器契约与样本 stats 的 SHA-256，返回有限的 `[16,20]` 动作后保存 `action.json` 和 `policy_metadata.json`，**不会执行机器人动作**。输出目录必须尚不存在。预测动作仍是数据集存储空间；不会自动变成米、弧度或关节角。probe 可验证在线模型链路，不能证明任务成功或控制正确。
 
-## 3. QX 仿真与 WebRTC
+## 3. 先让 QX 双臂动起来
 
-当前 `scripts/run_qx_banana.sh` 的 USD 加载和 WebRTC 显示已由用户确认成功。它没有 QX 的 Isaac Lab 控制注册，因此这里不能直接拿 USD 路径替换 DROID 后执行模型动作。
+新增 `--motion-smoke`，不再需要填写示例 `my_qx_registration`。它在香蕉入碗场景中创建真实 Isaac Lab Articulation、固定底盘、通过 PhysX Jacobian / DLS IK 驱动左右各 7 个关节，并在同一进程提供 WebRTC。先保持 Cosmos 模型服务运行，再在 RoboLab 的 Isaac Sim / Isaac Lab 环境执行。停止独立的旧预览进程，避免两个进程争用串流端口。
+
+**优先用之前已成功的 sample 做第一次运动验证**：沿用原来的 `--probe-ssh` 和 `--probe-sample` 参数，加上 `--motion-smoke`。此组合会启动物理仿真并执行模型轨迹，不再是只写 action.json 的 probe。
+
+```bash
+# 如果当前已激活原 Isaac Lab 环境，可直接使用它；也可显式指定其 python。
+export QX_PYTHON="$(command -v python)"
+export QX_ROBOT_USD=/实际路径/QX_and_picker.usd
+policy_host=POLICY_SERVER_IP  # 改成之前 probe 成功的模型服务器 IP
+
+NO_PROXY="$policy_host,localhost,127.0.0.1" \
+no_proxy="$policy_host,localhost,127.0.0.1" \
+bash scripts/run_cosmos3_moz.sh \
+  --motion-smoke --remote-host "$policy_host" --remote-port 8000 \
+  --probe-ssh "user@$policy_host" \
+  --probe-sample /实际远程路径/sample.json \
+  --motion-chunks 6 --motion-hold-seconds 30
+```
+
+将占位符换成原来成功 probe 的值。样本图像/state 在 Cosmos 服务器通过 SSH 读取，模型仍通过 WebSocket 真实推理，每次返回 `[16,20]` 后执行 16 个控制步。该模式重复使用样本输入，**是开环模型到执行器联调，不是实时观测闭环**；不需要先解决仿真相机或 SDK TCP 标定。
+
+不带 sample 参数则使用仿真实时图像与临时状态反馈：
+
+```bash
+bash scripts/run_cosmos3_moz.sh \
+  --motion-smoke --remote-host "$policy_host" --remote-port 8000 \
+  --motion-chunks 6 --motion-hold-seconds 30
+```
+
+实时模式使用 USD 中现有双腕 Camera，并新增一台 high 相机；姿态输入取 `left07/right07` 法兰相对 USD 首关节父坐标变换后的位姿，使用 rotvec。**尚未标定到 SDK 的 pose_base/TCP，夹爪状态临时填 0，high 视角也未对齐训练视角**，因此优先采用 sample 模式确认关节驱动，实时模式的模型效果不作为评测依据。相机路径或运行时 DOF 不匹配会明确报错，不回退到 DROID。
+
+两种模式采用同一诊断控制映射：每个 chunk 的首帧预测对齐当前实际法兰姿态，后续帧的位置变化、SO(3) 旋转变化驱动双臂；它不是生产 SDK 绝对 TCP 控制，也不是把 20 维当成关节角。躯干、轮子、头和夹爪保持初始关节目标，不执行对应预测通道。机器人重力、自碰撞在当前 stage 内关闭，底盘固定，不修改源 USD 或现有任务评测定义。
+
+默认物理步长 1/120 秒，4 个物理步执行一次控制；每个关节目标相对当前角度最多改变 0.02 rad，法兰目标距启动位置最多 0.10 m，单 chunk 旋转变化最多 0.25 rad，并按实际关节限位截断。`--motion-gain` 只缩放预测平移，`--motion-radius` 和 `--motion-joint-step` 可调整上述限幅。模型请求在工作线程中执行，等待推理时仍步进仿真并保持关节目标。30 Hz 是仿真控制配置，不是模型吞吐测量。
+
+终端会依次显示 `QX articulation initialized`、`Received [16,20]`、`Measured arm joint displacement`。结果保存在 `output/cosmos3_moz_motion/<时间戳>/`（可用 `--motion-output` 指定不存在的目录）：
+
+- `chunk_*.json`：实际输入 state/prompt、原始 `[16,20]` 预测、生成 seed、请求耗时。
+- `control.jsonl`：每个控制步的实际关节角和目标角，单位 rad，顺序见 summary。
+- `motion_summary.json`：模型 metadata、软件版本、输入来源、控制配置、实际关节映射、最大观测/目标位移、完成 chunk 数和运行状态。
+
+只有预测轨迹有变化、控制目标发生变化且实际读回的臂关节位移超过 `1e-4` rad 才报告 `motion_observed`；没有动作会报错，不通过预设摆臂伪造模型运动。该状态仅是联调运动证据，不证明任务成功、模型质量或完整 20 维映射正确。开发环境仅完成 CPU 检查，真实 USD/PhysX/GPU/串流还需在用户服务器验证。
+
+控制 API 对齐 [Isaac Lab 2.2 的 IK 示例](https://github.com/isaac-sim/IsaacLab/blob/v2.2.0/scripts/tutorials/05_controllers/run_diff_ik.py)和[固定底盘的 schema 实现](https://github.com/isaac-sim/IsaacLab/blob/v2.2.0/source/isaaclab/isaaclab/sim/schemas/schemas.py)。保持原有 Isaac Sim 5.0 / Isaac Lab 2.2 环境，不要求升级或重新训练。
+
+## 4. 完整 QX 任务注册与 WebRTC
+
+当前 `scripts/run_qx_banana.sh` 的 USD 加载和 WebRTC 显示已由用户确认成功。该预览脚本仍不执行控制；上一节的 `--motion-smoke` 提供独立运动联调。完整任务评测仍需要下述注册，不能直接拿 USD 路径替换 DROID。
 
 闭环入口已经支持自有机器人注册：
 
@@ -175,7 +222,7 @@ bash scripts/run_qx_banana.sh --headless --inspect-robot \
   --robot-report output/qx_robot_inventory_v2.json
 ```
 
-另一个独立待确认项是训练数据语义：用户资料第 7 节列出 base/world/末端/waist03 等常见选项，并未指定数据实际使用哪一种；URDF 的米/弧度也不能证明存储的动作已是物理单位。需检查 `leftarm_cmd_cart_pos`、`rightarm_cmd_cart_pos`、`torso_cmd_cart_pos`、夹爪命令及对应状态的生产代码，落实绝对/增量、参考系、旋转定义、TCP 偏移和生产端归一化，才能实现控制转换。
+2026-10-21 用户补充 SDK/FK 报告后，原始命令按绝对位姿、m/rotvec-rad、双臂各自基座系/躯干底盘系解释，夹爪 m、0 闭/0.12 全开；原文与精确数值见当日日志附件。完整 SDK Tf0/MDH/T7e 与实际 USD 的对应仍未落实。另须核对当次 Cosmos 训练是否将绝对命令与 OpenPI DeltaActions 的统计量配用；不能仅因统计来源就给现有输出加 state 或直接替换旧 checkpoint 的 stats。运动联调不修改已有训练或归一化，也不能消除这个待核对项。
 
 ## 固定输入输出契约
 

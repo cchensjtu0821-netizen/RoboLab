@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-"""Run the MOZ1 policy with a custom robot registration, or probe one offline input.
+"""Run MOZ1 task evaluation, an offline probe, or the QX motion diagnostic.
 
 The QX USD preview is not a robot control registration. Closed-loop evaluation
-requires --registration module:function; see README_MOZ.md for its contract.
+requires --registration module:function. --motion-smoke supplies a built-in
+anchored dual-arm physics diagnostic; see README_MOZ.md for its limits.
 """
 
 from __future__ import annotations
@@ -53,7 +54,9 @@ def build_parser():
     )
     parser.add_argument("--seed", type=int, default=0, help="Simulation seed; the custom registration must apply it.")
     parser.add_argument(
-        "--probe-sample", type=Path, help="Existing MOZ1 open-loop sample.json; no Isaac Sim or robot is started."
+        "--probe-sample",
+        type=Path,
+        help="Existing MOZ1 sample.json; alone probes inference, with --motion-smoke also drives QX in simulation.",
     )
     parser.add_argument(
         "--probe-ssh",
@@ -61,6 +64,9 @@ def build_parser():
     )
     parser.add_argument("--probe-output", type=Path, default=Path("output/cosmos3_moz_probe"))
     add_common_eval_args(parser)
+    from policies.cosmos3.motion_qx import add_motion_args
+
+    add_motion_args(parser)
     return parser
 
 
@@ -232,12 +238,16 @@ def main(argv=None):
     early, unknown = parser.parse_known_args(argv)
     if early.probe_ssh and not early.probe_sample:
         parser.error("--probe-ssh requires --probe-sample")
-    if early.probe_sample:
+    if early.probe_sample and not early.motion_smoke:
         if unknown:
             parser.error(f"Unrecognized probe arguments: {' '.join(unknown)}")
         probe(early)
         return
-    if not early.registration:
+    if early.motion_smoke:
+        from policies.cosmos3.motion_qx import validate_motion_args
+
+        validate_motion_args(early)
+    elif not early.registration:
         parser.error(
             "Closed-loop MOZ1 needs --registration module:function or MOZ1_REGISTRATION. "
             "QX USD preview alone cannot control the robot. Use --probe-sample sample.json to test the policy first."
@@ -247,9 +257,16 @@ def main(argv=None):
 
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args(argv)
+    if args.motion_smoke:
+        args.robot_usd, args.scene_usd = early.robot_usd, early.scene_usd
     args.enable_cameras = True
     app = AppLauncher(args).app
     try:
+        if args.motion_smoke:
+            from policies.cosmos3.motion_qx import run_motion
+
+            run_motion(args, app)
+            return
         import robolab.constants
 
         robolab.constants.ENABLE_SUBTASK_PROGRESS_CHECKING = args.enable_subtask
