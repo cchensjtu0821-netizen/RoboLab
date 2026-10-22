@@ -27,7 +27,16 @@ def add_motion_args(parser):
         "--motion-smoke", action="store_true", help="Run QX physics + policy motion, without task registration."
     )
     parser.add_argument("--scene-usd", type=Path, default=ROOT / "assets/scenes/banana_bowl.usda")
-    parser.add_argument("--robot-pos", type=float, nargs=3, default=(-0.9, 0.0, 0.0))
+    parser.add_argument(
+        "--robot-pos", type=float, nargs=3, default=(-0.1, 0.0, -0.6), help="Robot root XYZ translation in metres."
+    )
+    parser.add_argument(
+        "--robot-rot-deg",
+        type=float,
+        nargs=3,
+        default=(0.0, 0.0, 90.0),
+        help="Robot root XYZ Euler rotation in degrees (not policy rotvec).",
+    )
     parser.add_argument(
         "--motion-chunks", type=int, default=6, help="Number of real model requests; each returns 16 actions."
     )
@@ -83,6 +92,8 @@ def validate_motion_args(args):
         raise ValueError("--motion-smoke uses the banana scene; other --task values require benchmark registration")
     if not np.isfinite(args.robot_pos).all():
         raise ValueError("--robot-pos must be finite")
+    if not np.isfinite(args.robot_rot_deg).all():
+        raise ValueError("--robot-rot-deg must be finite")
     for name in ("motion_gain", "motion_radius", "motion_joint_step"):
         value = getattr(args, name)
         if not np.isfinite(value) or value <= 0:
@@ -134,7 +145,15 @@ def compose_scene(args):
     if fixture.IsValid():
         fixture.SetActive(False)
     robot = reference("/World/robot", args.robot_usd)
-    UsdGeom.XformCommonAPI(robot).SetTranslate(Gf.Vec3d(*args.robot_pos))
+    placement = UsdGeom.XformCommonAPI(robot)
+    if not placement.SetTranslate(Gf.Vec3d(*args.robot_pos)):
+        raise ValueError("Cannot set QX root translation; check the robot root xform operations")
+    if not placement.SetRotate(Gf.Vec3f(*args.robot_rot_deg), UsdGeom.XformCommonAPI.RotationOrderXYZ):
+        raise ValueError("Cannot set QX root XYZ rotation; check the robot root xform operations")
+    print(
+        f"QX initial placement: translate={tuple(args.robot_pos)} m, rotateXYZ={tuple(args.robot_rot_deg)} deg",
+        flush=True,
+    )
     roots = [p for p in Usd.PrimRange(robot) if p.HasAPI(UsdPhysics.ArticulationRootAPI)]
     if len(roots) != 1:
         raise ValueError(f"Expected one QX articulation root, found {[str(p.GetPath()) for p in roots]}")
@@ -374,6 +393,7 @@ def run_motion(args, app):
         "robot_usd": str(args.robot_usd),
         "scene_usd": str(args.scene_usd),
         "robot_pos": list(args.robot_pos),
+        "robot_rot_deg": list(args.robot_rot_deg),
         "sdk_tcp_calibrated": False,
         "torso_grippers": "held",
         "seed": args.seed,

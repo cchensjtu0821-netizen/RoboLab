@@ -20,8 +20,13 @@ parser.add_argument("--robot-usd", type=Path, required=True)
 parser.add_argument("--scene-usd", type=Path, default=DEFAULT_SCENE)
 parser.add_argument(
     "--robot-pos", type=float, nargs=3, metavar=("X", "Y", "Z"),
-    default=(-0.9, 0.0, 0.0),
+    default=(-0.1, 0.0, -0.6),
     help="Robot root translation in metres; adjust after viewing the scene.",
+)
+parser.add_argument(
+    "--robot-rot-deg", type=float, nargs=3, metavar=("RX", "RY", "RZ"),
+    default=(0.0, 0.0, 90.0),
+    help="Robot root XYZ Euler rotation in degrees.",
 )
 parser.add_argument(
     "--output-usd", type=Path, default=REPO_ROOT / "output/qx_banana_preview.usda",
@@ -87,7 +92,12 @@ def main():
             old_fixture.SetActive(False)
 
     robot = add_reference(stage, "/World/robot", args.robot_usd.resolve())
-    UsdGeom.XformCommonAPI(robot).SetTranslate(Gf.Vec3d(*args.robot_pos))
+    placement = UsdGeom.XformCommonAPI(robot)
+    if not placement.SetTranslate(Gf.Vec3d(*args.robot_pos)):
+        raise ValueError("Cannot set QX root translation; check the robot root xform operations")
+    if not placement.SetRotate(Gf.Vec3f(*args.robot_rot_deg), UsdGeom.XformCommonAPI.RotationOrderXYZ):
+        raise ValueError("Cannot set QX root XYZ rotation; check the robot root xform operations")
+    print(f"QX initial placement: translate={tuple(args.robot_pos)} m, rotateXYZ={tuple(args.robot_rot_deg)} deg", flush=True)
 
     if args.inspect_robot:
         from qx_usd_inventory import write_inventory

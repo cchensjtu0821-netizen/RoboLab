@@ -82,6 +82,8 @@ probe 核对服务器契约与样本 stats 的 SHA-256，返回有限的 `[16,20
 
 新增 `--motion-smoke`，不再需要填写示例 `my_qx_registration`。它在香蕉入碗场景中创建真实 Isaac Lab Articulation、固定底盘、通过 PhysX Jacobian / DLS IK 驱动左右各 7 个关节，并在同一进程提供 WebRTC。先保持 Cosmos 模型服务运行，再在 RoboLab 的 Isaac Sim / Isaac Lab 环境执行。停止独立的旧预览进程，避免两个进程争用串流端口。
 
+运动入口与 `run_qx_banana.sh` 预览统一默认机器人根位姿：平移 XYZ `(-0.1, 0.0, -0.6)` m，XYZ 欧拉旋转 `(0.0, 0.0, 90.0)` 度（绕Z轴90度）。可用 `--robot-pos X Y Z --robot-rot-deg RX RY RZ` 覆盖，启动时打印实际采用值，运动summary也记录两组值。该旋转用于整机在场景中的摆放，与模型动作的rotvec/rad不同；不修改源USD资产。
+
 **优先用之前已成功的 sample 做第一次运动验证**：沿用原来的 `--probe-ssh` 和 `--probe-sample` 参数，加上 `--motion-smoke`。此组合会启动物理仿真并执行模型轨迹，不再是只写 action.json 的 probe。
 
 ```bash
