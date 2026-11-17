@@ -69,6 +69,7 @@ def add_motion_args(parser):
     parser.add_argument(
         "--motion-replay", type=Path, help="Replay recording.json without a model or SSH sample request."
     )
+    parser.add_argument("--motion-calibrate-recording", type=Path, help="Fit flange offsets from paired measured state/joints; no model requests.")
     parser.add_argument(
         "--motion-replay-kind",
         choices=("state", "action"),
@@ -121,6 +122,12 @@ def inspect_completed_motion(sim, app):
 
 
 def validate_motion_args(args):
+    if args.motion_calibrate_recording:
+        if args.motion_replay or args.probe_sample or args.probe_ssh or args.motion_camera_check_only:
+            raise ValueError("Frame calibration cannot be combined with replay/sample/camera-check modes")
+        from policies.cosmos3.recording import load_bundle
+
+        load_bundle(args.motion_calibrate_recording)
     if args.num_envs != 1:
         raise ValueError("--motion-smoke supports --num-envs 1")
     if args.task and args.task != ["BananaInBowlTask"]:
@@ -579,6 +586,10 @@ def _run_motion(args, app, output, startup):
     robot.update(0)
     startup.phase("articulation.resolve_runtime_dofs")
     arms = QxArms(robot, stage, args)
+    if args.motion_calibrate_recording:
+        from policies.cosmos3.qx_calibration import calibrate_recording
+
+        return calibrate_recording(args, app, sim, robot, arms, startup)
     if args.motion_replay:
         from policies.cosmos3.replay_qx import replay_recording
 

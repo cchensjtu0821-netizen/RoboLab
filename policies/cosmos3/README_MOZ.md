@@ -1,5 +1,9 @@
 # Cosmos3 MOZ1 Edge 与 RoboLab
 
+实际模型与仿真交互的入口为 `bash scripts/run_cosmos3_moz_closed_loop.sh`，详见 [闭环任务评测指南](../../docs/COSMOS3_EDGE_POSTTRAIN_SIM_GUIDE.md)。它已包含 QX 注册、实时相机/state、绝对位姿 IK、夹爪控制与原任务结果统计，默认物理 120 Hz、action 30 Hz、每 4 步重新请求模型。需要实际训练 checkpoint 和资产 frame/夹爪映射；尚无本机真实仿真成功率结果。
+
+Cosmos 通用 MOZ1 启动器现在默认选择 `action_policy_moz1_edge_domain_projector_train`；新闭环启动器要求显式 checkpoint。服务已逆训练归一化，当前 adapter 没有减 state；不要再逆归一化或直接给输出加 state。下文的 sample/probe、`--motion-smoke` 和旧肩部系说明是保留的诊断路径；闭环评测请使用上述新入口和指南中的 flange 标定流程。
+
 这一入口用于 `run_moz1_edge_gpu7_train.sh` 对应的 MOZ1 后训练模型。旧的 `run.py` / `client.py` 保持 DROID 用法；MOZ1 使用 `run_moz.py` / `client_moz.py`，两者不能混用。
 
 模型服务、仿真控制、WebRTC 可视化仍是原来的部署方式。模型通过 WebSocket 接收相机/状态/指令、返回动作；WebRTC 展示同一个 RoboLab 进程的仿真视口。策略相机与 WebRTC 画面分别采集。

@@ -3,8 +3,8 @@
 
 """Run MOZ1 task evaluation, an offline probe, or the QX motion diagnostic.
 
-The QX USD preview is not a robot control registration. Closed-loop evaluation
-requires --registration module:function. --motion-smoke supplies a built-in
+Use --closed-loop for the built-in QX task registration, or supply a custom
+--registration module:function. --motion-smoke supplies a separate
 anchored torso and dual-arm physics diagnostic; see README_MOZ.md for its limits.
 """
 
@@ -40,10 +40,15 @@ def build_parser():
         default=None,
         help="Optional local copy of training stats; verify its hash against the server.",
     )
-    parser.add_argument("--execute-horizon", type=int, default=16, choices=range(1, 17))
+    parser.add_argument("--execute-horizon", type=int, default=4, choices=range(1, 17))
+    registration_group = parser.add_mutually_exclusive_group()
+    registration_group.add_argument("--closed-loop", action="store_true", help="Use the built-in QX benchmark registration with live simulated observations.")
+    parser.add_argument("--physics-hz", type=int, default=120, help="Physics frequency; a multiple of the trained 30 Hz action rate.")
+    parser.add_argument("--replan-hz", type=float, default=None, help="Sim-time replanning frequency 30/N (N=1..16); overrides execute-horizon.")
+    parser.add_argument("--write-adapter-template", type=Path, help="Write default QX adapter JSON to a new file and exit without Isaac/model loading.")
     parser.add_argument("--connect-timeout", type=float, default=120)
     parser.add_argument("--request-timeout", type=float, default=300)
-    parser.add_argument(
+    registration_group.add_argument(
         "--registration",
         default=os.environ.get("MOZ1_REGISTRATION"),
         help="Custom robot registration module:function (called with args); never registers DROID.",
@@ -70,7 +75,7 @@ def build_parser():
     return parser
 
 
-def make_client(args, *, stats_path=None):
+def make_client(args, *, stats_path=None, trace_dir=None):
     from policies.cosmos3.client_moz import Cosmos3MozClient
 
     return Cosmos3MozClient(
@@ -82,6 +87,7 @@ def make_client(args, *, stats_path=None):
         execute_horizon=args.execute_horizon,
         connect_timeout=args.connect_timeout,
         request_timeout=args.request_timeout,
+        trace_dir=trace_dir,
     )
 
 
@@ -236,8 +242,41 @@ def register_robot(args):
 def main(argv=None):
     parser = build_parser()
     early, unknown = parser.parse_known_args(argv)
+    if early.write_adapter_template:
+        from policies.cosmos3.qx_closed_loop import DEFAULT_CONFIG
+
+        early.write_adapter_template.parent.mkdir(parents=True, exist_ok=True)
+        with early.write_adapter_template.open("x") as stream:
+            json.dump(DEFAULT_CONFIG, stream, indent=2)
+            stream.write("\n")
+        print(f"QX adapter template: {early.write_adapter_template}")
+        return
+    if early.closed_loop:
+        if early.probe_sample or early.probe_ssh or early.motion_smoke or early.motion_replay or early.motion_calibrate_recording:
+            parser.error("--closed-loop requires live benchmark observations; do not combine it with sample/probe/motion modes")
+        if not early.robot_usd:
+            parser.error("--closed-loop needs --robot-usd or QX_ROBOT_USD")
+        asset = Path(early.robot_usd).expanduser()
+        if not asset.is_file():
+            parser.error(f"QX asset does not exist: {asset}")
+        from policies.cosmos3.qx_closed_loop import load_config
+
+        try:
+            load_config(early.adapter_config)
+        except (ValueError, TypeError, KeyError, OSError) as error:
+            parser.error(f"QX adapter configuration: {error}")
+        early.registration = "policies.cosmos3.qx_registration:register_envs"
+    from policies.cosmos3.qx_closed_loop import control_schedule
+
+    try:
+        schedule = control_schedule(early.physics_hz, early.execute_horizon, early.replan_hz)
+    except ValueError as error:
+        parser.error(str(error))
+    early.execute_horizon = schedule["execute_horizon"]
     if early.motion_replay and not early.motion_smoke:
         parser.error("--motion-replay requires --motion-smoke")
+    if early.motion_calibrate_recording and not early.motion_smoke:
+        parser.error("--motion-calibrate-recording requires --motion-smoke")
     if early.probe_ssh and not early.probe_sample:
         parser.error("--probe-ssh requires --probe-sample")
     if early.probe_sample and not early.motion_smoke:
@@ -259,6 +298,8 @@ def main(argv=None):
 
     AppLauncher.add_app_launcher_args(parser)
     args = parser.parse_args(argv)
+    args.registration = early.registration
+    args.execute_horizon = early.execute_horizon
     if args.motion_smoke:
         args.robot_usd, args.scene_usd = early.robot_usd, early.scene_usd
         if args.motion_keep_open is None:
@@ -285,7 +326,7 @@ def main(argv=None):
         def client_factory(config):
             from robolab.constants import get_output_dir
 
-            client = make_client(config)
+            client = make_client(config, trace_dir=Path(get_output_dir()) / "policy_trace")
             try:
                 path = Path(get_output_dir()) / "moz1_policy_metadata.json"
                 path.write_text(
@@ -295,6 +336,8 @@ def main(argv=None):
                             "registration": args.registration,
                             "execute_horizon": args.execute_horizon,
                             "simulation_seed": args.seed,
+                            "control_schedule": schedule,
+                            "qx_adapter": getattr(args, "qx_closed_loop_config", None),
                         },
                         indent=2,
                     )

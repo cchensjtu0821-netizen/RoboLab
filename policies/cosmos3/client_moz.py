@@ -6,8 +6,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import time
+import uuid
 from pathlib import Path
 
 import numpy as np
@@ -91,6 +93,7 @@ class Cosmos3MozClient(InferenceClient):
         connect_timeout: float = 120.0,
         request_timeout: float = 300.0,
         transport=None,
+        trace_dir: Path | None = None,
     ) -> None:
         super().__init__()
         if not 1 <= execute_horizon <= 16:
@@ -101,6 +104,10 @@ class Cosmos3MozClient(InferenceClient):
         self._stats_path = stats_path
         self._request_timeout = request_timeout
         self._connect_timeout = connect_timeout
+        self._trace_dir = Path(trace_dir) if trace_dir is not None else None
+        self._run_id = uuid.uuid4().hex[:12]
+        self._request_counter = 0
+        self._control_steps = {}
         self.metadata = None
         if transport is None:
             from robolab.eval.websocket_transport import MsgPackWebSocketTransport
@@ -159,12 +166,16 @@ class Cosmos3MozClient(InferenceClient):
         return {
             "images": images,
             "state": validate_state(state),
-            "session_id": f"moz1-episode-{self._eval_episode_idx}-env-{env_id}",
+            "session_id": f"moz1-{self._run_id}-episode-{self._eval_episode_idx}-env-{env_id}",
+            "control_step": self._control_steps.get(env_id, 0),
+            "ik_error_m_rad": self._to_numpy(proprio["ik_error_m_rad"], env_id).tolist()
+            if "ik_error_m_rad" in proprio else None,
         }
 
     def _pack_request(self, extracted_obs: dict, instruction: str) -> dict:
         if not isinstance(instruction, str) or not instruction.strip():
             raise ValueError("MOZ1 instruction must be nonempty text")
+        self._request_counter += 1
         return {
             "protocol": PROTOCOL,
             "state_space": STORED_SPACE,
@@ -172,14 +183,47 @@ class Cosmos3MozClient(InferenceClient):
             "observation/state": extracted_obs["state"],
             "prompt": instruction,
             "session_id": extracted_obs["session_id"],
+            "request_id": f"{self._run_id}-{self._request_counter}",
+            "control_step": extracted_obs.get("control_step", 0),
+            "_client_diagnostics": extracted_obs.get("ik_error_m_rad"),
         }
 
     def _query_server(self, request: dict):
         from websockets.exceptions import ConnectionClosed
 
+        request = dict(request)
+        diagnostics = request.pop("_client_diagnostics", None)
+        if "request_id" not in request:
+            self._request_counter += 1
+            request = {**request, "request_id": f"{self._run_id}-{self._request_counter}"}
         for attempt in range(3):
             try:
-                return self.client.request(request, timeout=self._request_timeout)
+                started = time.monotonic()
+                response = self.client.request(request, timeout=self._request_timeout)
+                actions = self._unpack_response(response)
+                if response.get("request_id", request["request_id"]) != request["request_id"]:
+                    raise ValueError("MOZ1 response request_id mismatch")
+                state_hash = hashlib.sha256(np.asarray(request["observation/state"], dtype=np.float32).tobytes()).hexdigest()
+                if response.get("state_sha256", state_hash) != state_hash:
+                    raise ValueError("MOZ1 response belongs to a different observation state")
+                if self._trace_dir is not None:
+                    self._trace_dir.mkdir(parents=True, exist_ok=True)
+                    images = request.get("observation/images", {"composite": request.get("observation/image")})
+                    record = {
+                        "request_id": request["request_id"], "session_id": request["session_id"],
+                        "control_step": request.get("control_step", 0),
+                        "state": request["observation/state"].tolist(), "prompt": request["prompt"],
+                        "image_sha256": {name: hashlib.sha256(np.ascontiguousarray(value).tobytes()).hexdigest()
+                                         for name, value in images.items()},
+                        "action": actions.tolist(), "execute_horizon": self.open_loop_horizon,
+                        "generation_seed": response.get("seed"), "request_seconds": time.monotonic() - started,
+                        "server_timing": response.get("timing"),
+                        "state_sha256": state_hash,
+                        "ik_error_m_rad": diagnostics,
+                    }
+                    with (self._trace_dir / f"{self._run_id}.jsonl").open("a") as stream:
+                        stream.write(json.dumps(record, allow_nan=False) + "\n")
+                return response
             except (OSError, ConnectionClosed):
                 self.client.close()
                 if attempt == 2:
@@ -187,6 +231,18 @@ class Cosmos3MozClient(InferenceClient):
                 self._chunks.clear()
                 self._counters.clear()
                 self._connect()
+
+    def infer(self, obs, instruction, *, env_id=0):
+        result = super().infer(obs, instruction, env_id=env_id)
+        self._control_steps[env_id] = self._control_steps.get(env_id, 0) + 1
+        return result
+
+    def reset(self, *, env_id=None):
+        super().reset(env_id=env_id)
+        if env_id is None:
+            self._control_steps.clear()
+        else:
+            self._control_steps.pop(env_id, None)
 
     def _unpack_response(self, response) -> np.ndarray:
         if not isinstance(response, dict):

@@ -28,6 +28,7 @@ def register_moz1_envs(
     proprio_obs_cfg,
     contact_gripper,
     scene_camera_cfg=None,
+    physics_hz=120,
 ):
     """Register benchmark tasks at 30 Hz using the supplied robot configs.
 
@@ -67,8 +68,8 @@ def register_moz1_envs(
         lighting_cfg=SphereLightCfg,
         background_cfg=HomeOfficeBackgroundCfg,
         contact_gripper=contact_gripper,
-        dt=1 / 120,
-        render_interval=4,
-        decimation=4,
+        dt=1 / physics_hz,
+        render_interval=physics_hz // 30,
+        decimation=physics_hz // 30,
         seed=args.seed,
     )

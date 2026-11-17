@@ -38,6 +38,7 @@ The core concepts are:
 - **[`num_envs` VRAM size guide](env_vram_size_guide.md)** — Per-task `num_envs` ceiling on L40, measured against pi05
 #### Policy
 - **[Inference Clients](../policies/README.md)** — Built-in policy clients and server setup instructions
+- **[Cosmos3 Edge 后训练模型仿真指南](COSMOS3_EDGE_POSTTRAIN_SIM_GUIDE.md)** — MOZ1 domain projector checkpoint selection, action semantics, model motion diagnostics, and task evaluation prerequisites
 #### Output
 - **[Data Storage and Output](data.md)** — Output directory structure, HDF5 layout, and episode result fields
 - **[Replaying Recorded Episodes](replay.md)** — Playing back recorded HDF5 episodes: initial-state restore, recorded env config, faithful-reproduction checklist, and state validation

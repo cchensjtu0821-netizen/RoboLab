@@ -431,7 +431,11 @@ def test_build_batch_and_infer_trim_once_without_droid_transform(cosmos, monkeyp
         "prompt": "pick",
         "observation/image": np.zeros((12, 10, 3), dtype=np.uint8),
     }
+    obs["request_id"] = "closed-loop-4"
     response = service.infer(obs)
+    assert response["request_id"] == "closed-loop-4"
+    assert response["state_sha256"] == hashlib.sha256(obs["observation/state"].tobytes()).hexdigest()
+    assert response["timing"]["generate_seconds"] >= 0
     np.testing.assert_array_equal(response["action"], generated.numpy()[1:])
     np.testing.assert_array_equal(captured["initial_state"].numpy(), np.arange(20) * 2 - 1)
     assert captured["action"].shape == (16, 64)
@@ -470,7 +474,7 @@ def test_shell_launchers_defaults_and_probe_arguments(cosmos, tmp_path):
     )
     lines = result.stdout.splitlines()
     assert lines[0] == str(
-        workspace / "cosmos_outputs/test/cosmos3_action/action_sft/action_policy_moz1_edge_gpu7_train"
+        workspace / "cosmos_outputs/test/cosmos3_action/action_sft/action_policy_moz1_edge_domain_projector_train"
     )
     assert lines[1:3] == ["6", ""]
     assert Path(lines[3]).resolve() == tmp_path / "data2" / "20260407_merged_123"
